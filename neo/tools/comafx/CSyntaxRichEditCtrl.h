@@ -128,7 +128,7 @@ public:
 	void					ReplaceText( int startCharIndex, int endCharIndex, const char *replace );
 
 protected:
-	virtual int				OnToolHitTest( CPoint point, TOOLINFO* pTI ) const;
+	virtual INT_PTR			OnToolHitTest( CPoint point, TOOLINFO* pTI ) const;
 	afx_msg BOOL			OnToolTipNotify( UINT id, NMHDR *pNMHDR, LRESULT *pResult );
 	afx_msg UINT			OnGetDlgCode();
 	afx_msg void			OnChar( UINT nChar, UINT nRepCnt, UINT nFlags );
@@ -168,7 +168,7 @@ protected:
 
 	idList<keyWord_t>		keyWordsFromFile;
 	const keyWord_t *		keyWords;
-	int *					keyWordLengths;
+	size_t *				keyWordLengths;
 	COLORREF *				keyWordColors;
 	idHashIndex				keyWordHash;
 

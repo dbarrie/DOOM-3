@@ -70,7 +70,7 @@ rvGEWindowWrapper::rvGEWindowWrapper( idWindow *window,EWindowType type ) {
 	// Attach the wrapper to the window by adding a defined variable
 	// with the wrappers pointer stuffed into an integer
 	idWinInt *var = new idWinInt();
-	int x = (int)this;
+	intptr_t x = (intptr_t)this;
 	*var = x;
 	var->SetEval(false);
 	var->SetName("guied_wrapper");
@@ -89,7 +89,7 @@ Static method that returns the window wrapper for the given window class
 rvGEWindowWrapper * rvGEWindowWrapper::GetWrapper( idWindow *window ) {
 	idWinInt *var;
 	var = dynamic_cast< idWinInt*>(window->GetWinVarByName("guied_wrapper"));	
-	return var ? ((rvGEWindowWrapper *) (int) (*var)) : NULL;
+	return var ? ((rvGEWindowWrapper *) (intptr_t) (*var)) : NULL;
 }
 
 /*
@@ -543,7 +543,7 @@ the finish method is called to finish up any last details
 bool rvGEWindowWrapper::VerfiyStateKey( const char *name,const char *value,idStr *result ) {
 	idStr old;
 	bool failed;
-	idParser src(value, strlen(value), "", LEXFL_NOSTRINGCONCAT | LEXFL_ALLOWMULTICHARLITERALS | LEXFL_ALLOWBACKSLASHSTRINGCONCAT);
+	idParser src(value, (int)strlen(value), "", LEXFL_NOSTRINGCONCAT | LEXFL_ALLOWMULTICHARLITERALS | LEXFL_ALLOWBACKSLASHSTRINGCONCAT);
 
 	// Save the current value
 	old = mState.GetString(name);

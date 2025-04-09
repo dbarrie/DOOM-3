@@ -69,7 +69,7 @@ Dialog Procedure for the quick watch dialog
 */
 INT_PTR CALLBACK rvDebuggerQuickWatchDlg::DlgProc ( HWND wnd, UINT msg, WPARAM wparam, LPARAM lparam )
 {
-	rvDebuggerQuickWatchDlg* dlg = (rvDebuggerQuickWatchDlg*) GetWindowLong ( wnd, GWL_USERDATA );
+	rvDebuggerQuickWatchDlg* dlg = (rvDebuggerQuickWatchDlg*) GetWindowLongPtr ( wnd, GWLP_USERDATA);
 	
 	switch ( msg )
 	{
@@ -128,7 +128,7 @@ INT_PTR CALLBACK rvDebuggerQuickWatchDlg::DlgProc ( HWND wnd, UINT msg, WPARAM w
 
 			// Attach the dialog class pointer to the window
 			dlg = (rvDebuggerQuickWatchDlg*) lparam;
-			SetWindowLong ( wnd, GWL_USERDATA, lparam );
+			SetWindowLongPtr ( wnd, GWLP_USERDATA, lparam );
 			dlg->mWnd = wnd;
 			
 			GetClientRect ( wnd, &client );

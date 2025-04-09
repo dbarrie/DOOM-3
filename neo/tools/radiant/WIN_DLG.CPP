@@ -193,13 +193,13 @@ BOOL CALLBACK ProjectDlgProc (
 		{ 
 			case IDC_ADDCMD:
 //				DialogBox(g_qeglobals.d_hInstance, (char *)IDD_ADDCMD, g_qeglobals.d_hwndMain, AddCommandDlgProc);
-				DialogBox(g_qeglobals.d_hInstance, (char *)IDD_ADDCMD, hwndDlg, AddCommandDlgProc);
+				DialogBox(g_qeglobals.d_hInstance, (char *)IDD_ADDCMD, hwndDlg, (DLGPROC)AddCommandDlgProc);
 				UpdateBSPCommandList (hwndDlg);
 				break;
 
 			case IDC_EDITCMD:
 //				DialogBox(g_qeglobals.d_hInstance, (char *)IDD_ADDCMD, g_qeglobals.d_hwndMain, EditCommandDlgProc);
-				DialogBox(g_qeglobals.d_hInstance, (char *)IDD_ADDCMD, hwndDlg, EditCommandDlgProc);
+				DialogBox(g_qeglobals.d_hInstance, (char *)IDD_ADDCMD, hwndDlg, (DLGPROC)EditCommandDlgProc);
 				UpdateBSPCommandList (hwndDlg);
 				break;
 
@@ -250,7 +250,7 @@ BOOL CALLBACK ProjectDlgProc (
 
 void DoProjectSettings()
 {
-	DialogBox(g_qeglobals.d_hInstance, (char *)IDD_PROJECT, g_pParentWnd->GetSafeHwnd(), ProjectDlgProc);
+	DialogBox(g_qeglobals.d_hInstance, (char *)IDD_PROJECT, g_pParentWnd->GetSafeHwnd(), (DLGPROC)ProjectDlgProc);
 }
 
 
@@ -292,7 +292,7 @@ BOOL CALLBACK GammaDlgProc (
 
 void DoGamma(void)
 {
-	if ( DialogBox(g_qeglobals.d_hInstance, (char *)IDD_GAMMA, g_pParentWnd->GetSafeHwnd(), GammaDlgProc))
+	if ( DialogBox(g_qeglobals.d_hInstance, (char *)IDD_GAMMA, g_pParentWnd->GetSafeHwnd(), (DLGPROC)GammaDlgProc))
 	{
 	}
 }		
@@ -438,7 +438,7 @@ BOOL CALLBACK FindBrushDlgProc (
 
 void DoFind(void)
 {
-	DialogBox(g_qeglobals.d_hInstance, (char *)IDD_FINDBRUSH, g_pParentWnd->GetSafeHwnd(), FindBrushDlgProc);
+	DialogBox(g_qeglobals.d_hInstance, (char *)IDD_FINDBRUSH, g_pParentWnd->GetSafeHwnd(), (DLGPROC)FindBrushDlgProc);
 }	
 	
 /*
@@ -504,7 +504,7 @@ BOOL CALLBACK RotateDlgProc (
 
 void DoRotate(void)
 {
-	DialogBox(g_qeglobals.d_hInstance, (char *)IDD_ROTATE, g_pParentWnd->GetSafeHwnd(), RotateDlgProc);
+	DialogBox(g_qeglobals.d_hInstance, (char *)IDD_ROTATE, g_pParentWnd->GetSafeHwnd(), (DLGPROC)RotateDlgProc);
 }
 		
 /*
@@ -564,7 +564,7 @@ void DoSides(bool bCone, bool bSphere, bool bTorus)
   g_bDoCone = bCone;
   g_bDoSphere = bSphere;
   //g_bDoTorus = bTorus;
-	DialogBox(g_qeglobals.d_hInstance, (char *)IDD_SIDES, g_pParentWnd->GetSafeHwnd(), SidesDlgProc);
+	DialogBox(g_qeglobals.d_hInstance, (char *)IDD_SIDES, g_pParentWnd->GetSafeHwnd(), (DLGPROC)SidesDlgProc);
 }		
 
 
@@ -629,7 +629,7 @@ BOOL CALLBACK AboutDlgProc( HWND hwndDlg,
 
 void DoAbout(void)
 {
-	DialogBox( g_qeglobals.d_hInstance, ( char * ) IDD_ABOUT, g_pParentWnd->GetSafeHwnd(), AboutDlgProc );
+	DialogBox( g_qeglobals.d_hInstance, ( char * ) IDD_ABOUT, g_pParentWnd->GetSafeHwnd(), (DLGPROC)AboutDlgProc );
 }
 
 

@@ -159,7 +159,7 @@ BOOL CCamWnd::PreCreateWindow(CREATESTRUCT &cs) {
 		wc.style = CS_NOCLOSE;
 		wc.lpszClassName = CAMERA_WINDOW_CLASS;
 		wc.hCursor = LoadCursor(NULL, IDC_ARROW);
-		wc.lpfnWndProc = CamWndProc;
+		wc.lpfnWndProc = (WNDPROC)CamWndProc;
 		if (AfxRegisterClass(&wc) == FALSE) {
 			Error("CCamWnd RegisterClass: failed");
 		}
@@ -2118,7 +2118,7 @@ void CCamWnd::Cam_Render() {
 }
 
 
-void CCamWnd::OnTimer(UINT nIDEvent) 
+void CCamWnd::OnTimer(UINT_PTR nIDEvent)
 {
 	if (animationMode || nIDEvent == 1) {
 		Sys_UpdateWindows(W_CAMERA);

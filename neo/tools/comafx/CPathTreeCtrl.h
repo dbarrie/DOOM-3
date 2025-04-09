@@ -46,7 +46,7 @@ public:
 	void				Pop( void ) { size--; }
 	HTREEITEM			TopItem( void ) const { return stackItem[size-1]; }
 	const char *		TopName( void ) const { return stackName[size-1]; }
-	int					TopNameLength( void ) const { return stackName[size-1].Length(); }
+	size_t				TopNameLength( void ) const { return stackName[size-1].Length(); }
 	int					Num( void ) const { return size; }
 
 private:
@@ -84,7 +84,7 @@ public:
 
 protected:
 	virtual void		PreSubclassWindow();
-	virtual int			OnToolHitTest( CPoint point, TOOLINFO * pTI ) const;
+	virtual INT_PTR		OnToolHitTest( CPoint point, TOOLINFO * pTI ) const;
 	afx_msg BOOL		OnToolTipText( UINT id, NMHDR * pNMHDR, LRESULT * pResult );
 
 	DECLARE_MESSAGE_MAP()

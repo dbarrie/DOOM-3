@@ -624,7 +624,7 @@ void DialogAFBody::SaveBody( void ) {
 	if ( idStr::Icmp( str, "none" ) == 0 ) {
 		body->inertiaScale.Identity();
 	} else {
-		idLexer src( str, str.GetLength(), "inertiaScale" );
+		idLexer src( str, (size_t)str.GetLength(), "inertiaScale" );
 		src.SetFlags( LEXFL_NOERRORS | LEXFL_NOWARNINGS );
 		for ( int i = 0; i < 3; i++ ) {
 			for ( int j = 0; j < 3; j++ ) {
@@ -707,7 +707,7 @@ BOOL DialogAFBody::OnInitDialog()  {
 DialogAFBody::OnToolHitTest
 ================
 */
-int DialogAFBody::OnToolHitTest( CPoint point, TOOLINFO* pTI ) const {
+INT_PTR DialogAFBody::OnToolHitTest( CPoint point, TOOLINFO* pTI ) const {
 	CDialog::OnToolHitTest( point, pTI );
 	return DefaultOnToolHitTest( toolTips, this, point, pTI );
 }

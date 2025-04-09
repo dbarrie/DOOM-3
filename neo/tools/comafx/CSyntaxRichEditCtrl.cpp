@@ -298,15 +298,15 @@ void CSyntaxRichEditCtrl::SetKeyWords( const keyWord_t kws[] ) {
 	for ( numKeyWords = 0; keyWords[numKeyWords].keyWord; numKeyWords++ ) {
 	}
 
-	delete keyWordColors;
+	delete[] keyWordColors;
 	keyWordColors = new COLORREF[numKeyWords];
 
 	for ( i = 0; i < numKeyWords; i++ ) {
 		keyWordColors[i] = keyWords[i].color;
 	}
 
-	delete keyWordLengths;
-	keyWordLengths = new int[numKeyWords];
+	delete[] keyWordLengths;
+	keyWordLengths = new size_t[numKeyWords];
 
 	for ( i = 0; i < numKeyWords; i++ ) {
 		keyWordLengths[i] = idStr::Length( keyWords[i].keyWord );
@@ -1361,7 +1361,7 @@ void CSyntaxRichEditCtrl::GoToLine( int line ) {
 CSyntaxRichEditCtrl::OnToolHitTest
 ================
 */
-int CSyntaxRichEditCtrl::OnToolHitTest( CPoint point, TOOLINFO* pTI ) const {
+INT_PTR CSyntaxRichEditCtrl::OnToolHitTest( CPoint point, TOOLINFO* pTI ) const {
 	CRichEditCtrl::OnToolHitTest( point, pTI );
 
     pTI->hwnd = GetSafeHwnd();
@@ -1828,7 +1828,7 @@ void CSyntaxRichEditCtrl::OnProtected( NMHDR *pNMHDR, LRESULT *pResult ) {
 		}
 		case WM_SETTEXT: {
 			updateRange.cpMin = pEP->chrg.cpMin;
-			updateRange.cpMax = pEP->chrg.cpMin + strlen( (LPCTSTR) pEP->lParam );
+			updateRange.cpMax = pEP->chrg.cpMin + (LONG)strlen( (LPCTSTR) pEP->lParam );
 			break;
 		}
 		case WM_CUT: {

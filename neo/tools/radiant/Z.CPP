@@ -287,7 +287,7 @@ void Z_DrawGrid(void) {
 	for (zz = zb; zz < ze; zz += 64) {
 		qglRasterPos2f(-w + 1, zz);
 		sprintf(text, "%i", (int)zz);
-		qglCallLists(strlen(text), GL_UNSIGNED_BYTE, text);
+		qglCallLists((int)strlen(text), GL_UNSIGNED_BYTE, text);
 	}
 }
 
