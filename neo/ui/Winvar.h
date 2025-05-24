@@ -32,7 +32,7 @@ If you have questions concerning this license or the applicable additional terms
 #include "Rectangle.h"
 
 static const char *VAR_GUIPREFIX = "gui::";
-static const int VAR_GUIPREFIX_LEN = strlen(VAR_GUIPREFIX);
+static const int VAR_GUIPREFIX_LEN = (int)strlen(VAR_GUIPREFIX);
 
 class idWindow;
 class idWinVar {
@@ -228,7 +228,7 @@ public:
 	virtual void WriteToSaveGame( idFile *savefile ) {
 		savefile->Write( &eval, sizeof( eval ) );
 
-		int len = data.Length();
+		int len = (int)data.Length();
 		savefile->Write( &len, sizeof( len ) );
 		if ( len > 0 ) {
 			savefile->Write( data.c_str(), len );
@@ -760,7 +760,7 @@ public:
 	operator const idStr &() const {
 		return data;
 	}
-	int Length() {
+	size_t Length() {
 		if (guiDict) {
 			data = guiDict->GetString(GetName());
 		}
@@ -810,7 +810,7 @@ public:
 	virtual void WriteToSaveGame( idFile *savefile ) {
 		savefile->Write( &eval, sizeof( eval ) );
 
-		int len = data.Length();
+		int len = (int)data.Length();
 		savefile->Write( &len, sizeof( len ) );
 		if ( len > 0 ) {
 			savefile->Write( data.c_str(), len );

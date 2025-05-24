@@ -163,7 +163,7 @@ idWindow::Size
 */
 size_t idWindow::Size() {
 	int c = children.Num();
-	int sz = 0;
+	size_t sz = 0;
 	for (int i = 0; i < c; i++) {
 		sz += children[i]->Size();
 	}
@@ -178,7 +178,7 @@ idWindow::Allocated
 */
 size_t idWindow::Allocated() {
 	int i, c;
-	int sz = name.Allocated();
+	size_t sz = name.Allocated();
 	sz += text.Size();
 	sz += backGroundName.Size();
 
@@ -1718,35 +1718,35 @@ int idWindow::GetWinVarOffset( idWinVar *wv, drawWin_t* owner) {
 	int ret = -1;
 
 	if ( wv == &rect ) {
-		ret = (int)&( ( idWindow * ) 0 )->rect;
+		ret = offsetof(idWindow, rect);
 	}
 
 	if ( wv == &backColor ) {
-		ret = (int)&( ( idWindow * ) 0 )->backColor;
+		ret = offsetof(idWindow, backColor);
 	}
 
 	if ( wv == &matColor ) {
-		ret = (int)&( ( idWindow * ) 0 )->matColor;
+		ret = offsetof(idWindow, matColor);
 	}
 
 	if ( wv == &foreColor ) {
-		ret = (int)&( ( idWindow * ) 0 )->foreColor;
+		ret = offsetof(idWindow, foreColor);
 	}
 
 	if ( wv == &hoverColor ) {
-		ret = (int)&( ( idWindow * ) 0 )->hoverColor;
+		ret = offsetof(idWindow, hoverColor);
 	}
 
 	if ( wv == &borderColor ) {
-		ret = (int)&( ( idWindow * ) 0 )->borderColor;
+		ret = offsetof(idWindow, borderColor);
 	}
 
 	if ( wv == &textScale ) {
-		ret = (int)&( ( idWindow * ) 0 )->textScale;
+		ret = offsetof(idWindow, textScale);
 	}
 
 	if ( wv == &rotate ) {
-		ret = (int)&( ( idWindow * ) 0 )->rotate;
+		ret = offsetof(idWindow, rotate);
 	}
 
 	if ( ret != -1 ) {
@@ -2763,7 +2763,7 @@ idWindow::EmitOp
 ================
 */
 
-int idWindow::EmitOp( int a, int b, wexpOpType_t opType, wexpOp_t **opp ) {
+int idWindow::EmitOp(intptr_t a, intptr_t b, wexpOpType_t opType, wexpOp_t **opp ) {
 	wexpOp_t *op;
 /*
 	// optimize away identity operations
@@ -2814,7 +2814,7 @@ int idWindow::EmitOp( int a, int b, wexpOpType_t opType, wexpOp_t **opp ) {
 idWindow::ParseEmitOp
 ================
 */
-int idWindow::ParseEmitOp( idParser *src, int a, wexpOpType_t opType, int priority, wexpOp_t **opp ) {
+int idWindow::ParseEmitOp( idParser *src, intptr_t a, wexpOpType_t opType, int priority, wexpOp_t **opp ) {
 	int b = ParseExpressionPriority( src, priority );
 	return EmitOp( a, b, opType, opp );  
 }
@@ -2829,7 +2829,7 @@ Returns a register index
 */
 int idWindow::ParseTerm( idParser *src,	idWinVar *var, int component ) {
 	idToken token;
-	int		a, b;
+	intptr_t		a, b;
 
 	src->ReadToken( &token );
 
@@ -2872,7 +2872,7 @@ int idWindow::ParseTerm( idParser *src,	idWinVar *var, int component ) {
 		var = GetWinVarByName(token, true);
 	}
 	if (var) {
-		a = (int)var;
+		a = (intptr_t)var;
 		//assert(dynamic_cast<idWinVec4*>(var));
 		var->Init(token, this);
 		b = component;
@@ -2902,7 +2902,7 @@ int idWindow::ParseTerm( idParser *src,	idWinVar *var, int component ) {
 		// ugly but used for post parsing to fixup named vars
 		char *p = new char[token.Length()+1];
 		strcpy(p, token);
-		a = (int)p;
+		a = (intptr_t)p;
 		b = -2;
 		return EmitOp(a, b, WOP_TYPE_VAR);
 	}
@@ -3402,7 +3402,7 @@ idWindow::WriteString
 ===============
 */
 void idWindow::WriteSaveGameString( const char *string, idFile *savefile ) {
-	int len = strlen( string );
+	int len = (int)strlen( string );
 
 	savefile->Write( &len, sizeof( len ) );
 	savefile->Write( string, len );
@@ -3776,35 +3776,35 @@ void idWindow::FixupTransitions() {
 		transitions[i].data = NULL;
 		if ( dw && ( dw->win || dw->simp ) ){
 			if ( dw->win ) {
-				if ( transitions[i].offset == (int)&( ( idWindow * ) 0 )->rect ) {
+				if ( transitions[i].offset == offsetof(idWindow, rect) ) {
 					transitions[i].data = &dw->win->rect;
-				} else if ( transitions[i].offset == (int)&( ( idWindow * ) 0 )->backColor ) {
+				} else if ( transitions[i].offset == offsetof(idWindow, backColor) ) {
 					transitions[i].data = &dw->win->backColor;
-				} else if ( transitions[i].offset == (int)&( ( idWindow * ) 0 )->matColor ) {
+				} else if ( transitions[i].offset == offsetof(idWindow, matColor) ) {
 					transitions[i].data = &dw->win->matColor;
-				} else if ( transitions[i].offset == (int)&( ( idWindow * ) 0 )->foreColor ) {
+				} else if ( transitions[i].offset == offsetof(idWindow, foreColor) ) {
 					transitions[i].data = &dw->win->foreColor;
-				} else if ( transitions[i].offset == (int)&( ( idWindow * ) 0 )->borderColor ) {
+				} else if ( transitions[i].offset == offsetof(idWindow, borderColor) ) {
 					transitions[i].data = &dw->win->borderColor;
-				} else if ( transitions[i].offset == (int)&( ( idWindow * ) 0 )->textScale ) {
+				} else if ( transitions[i].offset == offsetof(idWindow, textScale) ) {
 					transitions[i].data = &dw->win->textScale;
-				} else if ( transitions[i].offset == (int)&( ( idWindow * ) 0 )->rotate ) {
+				} else if ( transitions[i].offset == offsetof(idWindow, rotate) ) {
 					transitions[i].data = &dw->win->rotate;
 				}
 			} else {
-				if ( transitions[i].offset == (int)&( ( idSimpleWindow * ) 0 )->rect ) {
+				if ( transitions[i].offset == offsetof(idSimpleWindow, rect) ) {
 					transitions[i].data = &dw->simp->rect;
-				} else if ( transitions[i].offset == (int)&( ( idSimpleWindow * ) 0 )->backColor ) {
+				} else if ( transitions[i].offset == offsetof(idSimpleWindow, backColor) ) {
 					transitions[i].data = &dw->simp->backColor;
-				} else if ( transitions[i].offset == (int)&( ( idSimpleWindow * ) 0 )->matColor ) {
+				} else if ( transitions[i].offset == offsetof(idSimpleWindow, matColor) ) {
 					transitions[i].data = &dw->simp->matColor;
-				} else if ( transitions[i].offset == (int)&( ( idSimpleWindow * ) 0 )->foreColor ) {
+				} else if ( transitions[i].offset == offsetof(idSimpleWindow, foreColor) ) {
 					transitions[i].data = &dw->simp->foreColor;
-				} else if ( transitions[i].offset == (int)&( ( idSimpleWindow * ) 0 )->borderColor ) {
+				} else if ( transitions[i].offset == offsetof(idSimpleWindow, borderColor) ) {
 					transitions[i].data = &dw->simp->borderColor;
-				} else if ( transitions[i].offset == (int)&( ( idSimpleWindow * ) 0 )->textScale ) {
+				} else if ( transitions[i].offset == offsetof(idSimpleWindow, textScale) ) {
 					transitions[i].data = &dw->simp->textScale;
-				} else if ( transitions[i].offset == (int)&( ( idSimpleWindow * ) 0 )->rotate ) {
+				} else if ( transitions[i].offset == offsetof(idSimpleWindow, rotate) ) {
 					transitions[i].data = &dw->simp->rotate;
 				}
 			}
@@ -3864,7 +3864,7 @@ void idWindow::FixupParms() {
 			const char *p = (const char*)(ops[i].a);
 			idWinVar *var = GetWinVarByName(p, true);
 			delete []p;
-			ops[i].a = (int)var;
+			ops[i].a = (intptr_t)var;
 			ops[i].b = -1;
 		}
 	}

@@ -61,14 +61,14 @@ int idDeviceContext::FindFont( const char *name ) {
 	fileName.Replace("fonts", va("fonts/%s", fontLang.c_str()) );
 
 	fontInfoEx_t fontInfo;
-		int index = fonts.Append( fontInfo );
-		if ( renderSystem->RegisterFont( fileName, fonts[index] ) ){
+	int index = fonts.Append( fontInfo );
+	if ( renderSystem->RegisterFont( fileName, fonts[index] ) ){
 		idStr::Copynz( fonts[index].name, name, sizeof( fonts[index].name ) );
 		return index;
-		} else {
+	} else {
 		common->Printf( "Could not register font %s [%s]\n", name, fileName.c_str() );
 		return -1;
-}
+	}
 }
 
 void idDeviceContext::SetupFonts() {
@@ -687,7 +687,7 @@ int idDeviceContext::DrawText(float x, float y, float scale, idVec4 color, const
 		const unsigned char	*s = (const unsigned char*)text;
 		renderSystem->SetColor(color);
 		memcpy(&newColor[0], &color[0], sizeof(idVec4));
-		len = strlen(text);
+		len = (int)strlen(text);
 		if (limit > 0 && len > limit) {
 			len = limit;
 		}
@@ -807,7 +807,7 @@ int idDeviceContext::TextHeight(const char *text, float scale, int limit) {
 	useScale = scale * font->glyphScale;
 	max = 0;
 	if (text) {
-		len = strlen(text);
+		len = (int)strlen(text);
 		if (limit > 0 && len > limit) {
 			len = limit;
 		}
