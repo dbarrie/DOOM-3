@@ -2575,6 +2575,8 @@ void idCompiler::CompileFile( const char *text, const char *filename, bool toCon
 	idTimer compile_time;
 	bool error;
 
+	idStr origFilename = filename;
+
 	compile_time.Start();
 
 	scope				= &def_namespace;
@@ -2644,6 +2646,6 @@ void idCompiler::CompileFile( const char *text, const char *filename, bool toCon
 
 	compile_time.Stop();
 	if ( !toConsole ) {
-		gameLocal.Printf( "Compiled '%s': %.1f ms\n", filename, compile_time.Milliseconds() );
+		gameLocal.Printf( "Compiled '%s': %.1f ms\n", origFilename.c_str(), compile_time.Milliseconds() );
 	}
 }

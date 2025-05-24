@@ -508,7 +508,7 @@ public:
 
 	statement_t									*AllocStatement( void );
 	statement_t									&GetStatement( int index );
-	int											NumStatements( void ) { return statements.Num(); }
+	size_t										NumStatements( void ) { return statements.Num(); }
 
 	int 										GetReturnedInteger( void );
 
@@ -518,7 +518,7 @@ public:
 	void										ReturnString( const char *string );
 	void										ReturnEntity( idEntity *ent );
 	
-	int											NumFilenames( void ) { return fileList.Num( ); }
+	size_t										NumFilenames( void ) { return fileList.Num( ); }
 };
 
 /*
