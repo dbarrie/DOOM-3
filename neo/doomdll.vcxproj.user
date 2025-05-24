@@ -5,7 +5,17 @@
     <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
     <LocalDebuggerCommandArguments>+set fs_basepath "C:\Program Files (x86)\Steam\steamapps\common\doom 3" +set com_allowConsole 1 +set si_pure 0</LocalDebuggerCommandArguments>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug with inlines and memory log|x64'">
+    <LocalDebuggerCommand>$(OutDir)DOOM3.exe</LocalDebuggerCommand>
+    <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
+    <LocalDebuggerCommandArguments>+set fs_basepath "C:\Program Files (x86)\Steam\steamapps\common\doom 3" +set com_allowConsole 1 +set si_pure 0</LocalDebuggerCommandArguments>
+  </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug with inlines|Win32'">
+    <LocalDebuggerCommand>$(OutDir)DOOM3.exe</LocalDebuggerCommand>
+    <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
+    <LocalDebuggerCommandArguments>+set fs_basepath "C:\Program Files (x86)\Steam\steamapps\common\doom 3" +set com_allowConsole 1 +set si_pure 0</LocalDebuggerCommandArguments>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug with inlines|x64'">
     <LocalDebuggerCommand>$(OutDir)DOOM3.exe</LocalDebuggerCommand>
     <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
     <LocalDebuggerCommandArguments>+set fs_basepath "C:\Program Files (x86)\Steam\steamapps\common\doom 3" +set com_allowConsole 1 +set si_pure 0</LocalDebuggerCommandArguments>
@@ -13,9 +23,26 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LocalDebuggerCommand>$(OutDir)DOOM3.exe</LocalDebuggerCommand>
     <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
-    <LocalDebuggerCommandArguments>+set fs_basepath "C:\Program Files (x86)\Steam\steamapps\common\doom 3" +set com_allowConsole 1 +set si_pure 0</LocalDebuggerCommandArguments>
+    <LocalDebuggerCommandArguments>+set fs_basepath $(SolutionDir).. +set com_allowConsole 1 +set si_pure 0</LocalDebuggerCommandArguments>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <LocalDebuggerCommand>$(OutDir)DOOM3.exe</LocalDebuggerCommand>
+    <DebuggerFlavor>WindowsRemoteDebugger</DebuggerFlavor>
+    <LocalDebuggerCommandArguments>+set fs_basepath E:\FPGA_Projects\fury_gpu\games\DOOM +set com_allowConsole 1 +set si_pure 0</LocalDebuggerCommandArguments>
+    <RemoteDebuggerCommand>\\FRACTALWHITE\Shared\Doom3\$(TargetFileName)</RemoteDebuggerCommand>
+    <RemoteDebuggerWorkingDirectory>\\FRACTALWHITE\Shared\Doom3\</RemoteDebuggerWorkingDirectory>
+    <RemoteDebuggerServerName>DRVTEST-AMD:4024</RemoteDebuggerServerName>
+    <RemoteDebuggerConnection>RemoteWithoutAuthentication</RemoteDebuggerConnection>
+    <DeploymentDirectory>\\FRACTALWHITE\Shared\Doom3\</DeploymentDirectory>
+    <AdditionalFiles>$(ProjectDir)..\..\quake\thirdparty\dxc\bin\x64\dxcompiler.dll;$(ProjectDir)..\..\..\driver\host\windows\FuryGL\$(Platform)\$(Configuration)\FuryGL.dll;$(ProjectDir)..\..\..\driver\host\windows\FuryGL\$(Platform)\$(Configuration)\ClangInterop.dll</AdditionalFiles>
+    <RemoteDebuggerCommandArguments>+set fs_basepath C:\Doom3 +set com_allowConsole 1 +set si_pure 0 +map testmaps/test_box</RemoteDebuggerCommandArguments>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Dedicated Debug with inlines|Win32'">
+    <LocalDebuggerCommand>$(OutDir)DOOM3.exe</LocalDebuggerCommand>
+    <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
+    <LocalDebuggerCommandArguments>+set fs_basepath "C:\Program Files (x86)\Steam\steamapps\common\doom 3" +set com_allowConsole 1 +set si_pure 0</LocalDebuggerCommandArguments>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Dedicated Debug with inlines|x64'">
     <LocalDebuggerCommand>$(OutDir)DOOM3.exe</LocalDebuggerCommand>
     <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
     <LocalDebuggerCommandArguments>+set fs_basepath "C:\Program Files (x86)\Steam\steamapps\common\doom 3" +set com_allowConsole 1 +set si_pure 0</LocalDebuggerCommandArguments>
@@ -25,12 +52,27 @@
     <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
     <LocalDebuggerCommandArguments>+set fs_basepath "C:\Program Files (x86)\Steam\steamapps\common\doom 3" +set com_allowConsole 1 +set si_pure 0</LocalDebuggerCommandArguments>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Dedicated Debug|x64'">
+    <LocalDebuggerCommand>$(OutDir)DOOM3.exe</LocalDebuggerCommand>
+    <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
+    <LocalDebuggerCommandArguments>+set fs_basepath "C:\Program Files (x86)\Steam\steamapps\common\doom 3" +set com_allowConsole 1 +set si_pure 0</LocalDebuggerCommandArguments>
+  </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Dedicated Release|Win32'">
     <LocalDebuggerCommand>$(OutDir)DOOM3.exe</LocalDebuggerCommand>
     <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
     <LocalDebuggerCommandArguments>+set fs_basepath "C:\Program Files (x86)\Steam\steamapps\common\doom 3" +set com_allowConsole 1 +set si_pure 0</LocalDebuggerCommandArguments>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Dedicated Release|x64'">
+    <LocalDebuggerCommand>$(OutDir)DOOM3.exe</LocalDebuggerCommand>
+    <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
+    <LocalDebuggerCommandArguments>+set fs_basepath "C:\Program Files (x86)\Steam\steamapps\common\doom 3" +set com_allowConsole 1 +set si_pure 0</LocalDebuggerCommandArguments>
+  </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <LocalDebuggerCommand>$(OutDir)DOOM3.exe</LocalDebuggerCommand>
+    <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
+    <LocalDebuggerCommandArguments>+set fs_basepath "C:\Program Files (x86)\Steam\steamapps\common\doom 3" +set com_allowConsole 1 +set si_pure 0</LocalDebuggerCommandArguments>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LocalDebuggerCommand>$(OutDir)DOOM3.exe</LocalDebuggerCommand>
     <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
     <LocalDebuggerCommandArguments>+set fs_basepath "C:\Program Files (x86)\Steam\steamapps\common\doom 3" +set com_allowConsole 1 +set si_pure 0</LocalDebuggerCommandArguments>

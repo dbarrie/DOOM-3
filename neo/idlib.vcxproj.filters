@@ -348,5 +348,11 @@
     <ClInclude Include="idlib\MapFile.h" />
     <ClInclude Include="idlib\precompiled.h" />
     <ClInclude Include="idlib\Timer.h" />
+    <ClInclude Include="idlib\containers\Array.h">
+      <Filter>Containers</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <Natvis Include="idlib\idlib.natvis" />
   </ItemGroup>
 </Project>

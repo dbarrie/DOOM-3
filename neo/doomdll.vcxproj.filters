@@ -621,6 +621,24 @@
     <ClInclude Include="ui\Winvar.h">
       <Filter>Ui</Filter>
     </ClInclude>
+    <ClInclude Include="renderer\RenderBackend.h">
+      <Filter>Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="renderer\bcdec.h">
+      <Filter>Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="renderer\RenderProgs.h">
+      <Filter>Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="renderer\BufferObject.h">
+      <Filter>Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="renderer\RenderCommon.h">
+      <Filter>Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\..\git\SPIRV-Reflect\spirv_reflect.h">
+      <Filter>Renderer</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="cm\CollisionModel_contacts.cpp">
@@ -737,22 +755,7 @@
     <ClCompile Include="renderer\Cinematic.cpp">
       <Filter>Renderer</Filter>
     </ClCompile>
-    <ClCompile Include="renderer\draw_arb.cpp">
-      <Filter>Renderer</Filter>
-    </ClCompile>
-    <ClCompile Include="renderer\draw_arb2.cpp">
-      <Filter>Renderer</Filter>
-    </ClCompile>
     <ClCompile Include="renderer\draw_common.cpp">
-      <Filter>Renderer</Filter>
-    </ClCompile>
-    <ClCompile Include="renderer\draw_nv10.cpp">
-      <Filter>Renderer</Filter>
-    </ClCompile>
-    <ClCompile Include="renderer\draw_nv20.cpp">
-      <Filter>Renderer</Filter>
-    </ClCompile>
-    <ClCompile Include="renderer\draw_r200.cpp">
       <Filter>Renderer</Filter>
     </ClCompile>
     <ClCompile Include="renderer\GuiModel.cpp">
@@ -1822,6 +1825,21 @@
     </ClCompile>
     <ClCompile Include="ui\Winvar.cpp">
       <Filter>Ui</Filter>
+    </ClCompile>
+    <ClCompile Include="renderer\RenderBackend.cpp">
+      <Filter>Renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="renderer\RenderProgs.cpp">
+      <Filter>Renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="renderer\BufferObject.cpp">
+      <Filter>Renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\..\git\SPIRV-Reflect\spirv_reflect.cpp">
+      <Filter>Renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="sys\win32\win_fury.cpp">
+      <Filter>Sys</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
