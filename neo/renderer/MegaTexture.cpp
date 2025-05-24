@@ -220,7 +220,8 @@ BindForViewOrigin
 ====================
 */
 void idMegaTexture::BindForViewOrigin( const idVec3 viewOrigin ) {
-
+	assert(false);
+#if 0
 	SetViewOrigin( viewOrigin );
 
 	// borderClamp image goes in texture 0
@@ -264,6 +265,7 @@ void idMegaTexture::BindForViewOrigin( const idVec3 viewOrigin ) {
 	parms[2] = r_terrainScale.GetFloat();
 	parms[3] = 1;
 	qglProgramLocalParameter4fvARB( GL_VERTEX_PROGRAM_ARB, 8, parms );
+#endif
 }
 
 /*
@@ -406,6 +408,8 @@ Center is in the 0.0 to 1.0 range
 ====================
 */
 void idTextureLevel::UpdateForCenter( float center[2] ) {
+	assert(false);
+#if 0
 	int		globalTileCorner[2];
 	int		localTileOffset[2];
 
@@ -448,6 +452,7 @@ void idTextureLevel::UpdateForCenter( float center[2] ) {
 			UpdateTile( x, y, globalTile[0], globalTile[1] );
 		}
 	}
+#endif
 }
 
 /*

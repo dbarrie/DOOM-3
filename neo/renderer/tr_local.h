@@ -29,6 +29,9 @@ If you have questions concerning this license or the applicable additional terms
 #ifndef __TR_LOCAL_H__
 #define __TR_LOCAL_H__
 
+#include "RenderCommon.h"
+#include "RenderBackend.h"
+
 #include "Image.h"
 #include "MegaTexture.h"
 
@@ -117,7 +120,7 @@ typedef struct drawSurf_s {
 	const struct drawSurf_s	*nextOnLight;	// viewLight chains
 	idScreenRect			scissorRect;	// for scissor clipping, local inside renderView viewport
 	int						dsFlags;			// DSF_VIEW_INSIDE_SHADOW, etc
-	struct vertCache_s		*dynamicTexCoords;	// float * in vertex cache memory
+	vertCacheHandle_t		dynamicTexCoords;	// float * in vertex cache memory
 	// specular directions for non vertex program cards, skybox texcoords, etc
 } drawSurf_t;
 
@@ -433,7 +436,7 @@ typedef struct viewDef_s {
 
 // complex light / surface interactions are broken up into multiple passes of a
 // simple interaction shader
-typedef struct {
+typedef struct drawInteraction_s {
 	const drawSurf_t *	surf;
 
 	idImage *			lightImage;
@@ -457,48 +460,6 @@ typedef struct {
 	idVec4				diffuseMatrix[2];
 	idVec4				specularMatrix[2];
 } drawInteraction_t;
-
-
-/*
-=============================================================
-
-RENDERER BACK END COMMAND QUEUE
-
-TR_CMDS
-
-=============================================================
-*/
-
-typedef enum {
-	RC_NOP,
-	RC_DRAW_VIEW,
-	RC_SET_BUFFER,
-	RC_COPY_RENDER,
-	RC_SWAP_BUFFERS		// can't just assume swap at end of list because
-						// of forced list submission before syncs
-} renderCommand_t;
-
-typedef struct {
-	renderCommand_t		commandId, *next;
-} emptyCommand_t;
-
-typedef struct {
-	renderCommand_t		commandId, *next;
-	GLenum	buffer;
-	int		frameCount;
-} setBufferCommand_t;
-
-typedef struct {
-	renderCommand_t		commandId, *next;
-	viewDef_t	*viewDef;
-} drawSurfsCommand_t;
-
-typedef struct {
-	renderCommand_t		commandId, *next;
-	int		x, y, imageWidth, imageHeight;
-	idImage	*image;
-	int		cubeFace;					// when copying to a cubeMap
-} copyRenderCommand_t;
 
 
 //=======================================================================
@@ -563,6 +524,8 @@ const idMaterial *R_RemapShaderBySkin( const idMaterial *shader, const idDeclSki
 
 
 //====================================================
+
+#include "RenderBackend.h"
 
 
 /*
@@ -670,11 +633,7 @@ const int MAX_GUI_SURFACES	= 1024;		// default size of the drawSurfs list for gu
 										// be automatically expanded as needed
 
 typedef enum {
-	BE_ARB,
-	BE_NV10,
-	BE_NV20,
-	BE_R200,
-	BE_ARB2,
+	BE_FGL,
 	BE_BAD
 } backEndName_t;
 
@@ -803,6 +762,8 @@ public:
 	class idGuiModel *		demoGuiModel;
 
 	unsigned short			gammaTable[256];	// brightness / gamma modify this
+
+	idRenderBackend			m_backend;
 };
 
 extern backEndState_t		backEnd;
@@ -817,6 +778,7 @@ extern idCVar r_ext_vertex_array_range;
 
 extern idCVar r_glDriver;				// "opengl32", etc
 extern idCVar r_mode;					// video mode number
+extern idCVar r_pixelDouble;			// pixel doubled rendering
 extern idCVar r_displayRefresh;			// optional display refresh rate option for vid mode
 extern idCVar r_fullscreen;				// 0 = windowed, 1 = full screen
 extern idCVar r_multiSamples;			// number of antialiasing samples
@@ -1002,49 +964,7 @@ void	GL_State( int stateVector );
 void	GL_TexEnv( int env );
 void	GL_Cull( int cullType );
 
-const int GLS_SRCBLEND_ZERO						= 0x00000001;
-const int GLS_SRCBLEND_ONE						= 0x0;
-const int GLS_SRCBLEND_DST_COLOR				= 0x00000003;
-const int GLS_SRCBLEND_ONE_MINUS_DST_COLOR		= 0x00000004;
-const int GLS_SRCBLEND_SRC_ALPHA				= 0x00000005;
-const int GLS_SRCBLEND_ONE_MINUS_SRC_ALPHA		= 0x00000006;
-const int GLS_SRCBLEND_DST_ALPHA				= 0x00000007;
-const int GLS_SRCBLEND_ONE_MINUS_DST_ALPHA		= 0x00000008;
-const int GLS_SRCBLEND_ALPHA_SATURATE			= 0x00000009;
-const int GLS_SRCBLEND_BITS						= 0x0000000f;
 
-const int GLS_DSTBLEND_ZERO						= 0x0;
-const int GLS_DSTBLEND_ONE						= 0x00000020;
-const int GLS_DSTBLEND_SRC_COLOR				= 0x00000030;
-const int GLS_DSTBLEND_ONE_MINUS_SRC_COLOR		= 0x00000040;
-const int GLS_DSTBLEND_SRC_ALPHA				= 0x00000050;
-const int GLS_DSTBLEND_ONE_MINUS_SRC_ALPHA		= 0x00000060;
-const int GLS_DSTBLEND_DST_ALPHA				= 0x00000070;
-const int GLS_DSTBLEND_ONE_MINUS_DST_ALPHA		= 0x00000080;
-const int GLS_DSTBLEND_BITS						= 0x000000f0;
-
-
-// these masks are the inverse, meaning when set the glColorMask value will be 0,
-// preventing that channel from being written
-const int GLS_DEPTHMASK							= 0x00000100;
-const int GLS_REDMASK							= 0x00000200;
-const int GLS_GREENMASK							= 0x00000400;
-const int GLS_BLUEMASK							= 0x00000800;
-const int GLS_ALPHAMASK							= 0x00001000;
-const int GLS_COLORMASK							= (GLS_REDMASK|GLS_GREENMASK|GLS_BLUEMASK);
-
-const int GLS_POLYMODE_LINE						= 0x00002000;
-
-const int GLS_DEPTHFUNC_ALWAYS					= 0x00010000;
-const int GLS_DEPTHFUNC_EQUAL					= 0x00020000;
-const int GLS_DEPTHFUNC_LESS					= 0x0;
-
-const int GLS_ATEST_EQ_255						= 0x10000000;
-const int GLS_ATEST_LT_128						= 0x20000000;
-const int GLS_ATEST_GE_128						= 0x40000000;
-const int GLS_ATEST_BITS						= 0x70000000;
-
-const int GLS_DEFAULT							= GLS_DEPTHFUNC_ALWAYS;
 
 void R_Init( void );
 void R_InitOpenGL( void );
@@ -1077,14 +997,17 @@ typedef struct {
 } glimpParms_t;
 
 bool		GLimp_Init( glimpParms_t parms );
+bool		Fgl_Init(glimpParms_t parms);
 // If the desired mode can't be set satisfactorily, false will be returned.
 // The renderer will then reset the glimpParms to "safe mode" of 640x480
 // fullscreen and try again.  If that also fails, the error will be fatal.
 
 bool		GLimp_SetScreenParms( glimpParms_t parms );
+bool		Fgl_SetScreenParms(glimpParms_t parms);
 // will set up gl up with the new parms
 
 void		GLimp_Shutdown( void );
+void		Fgl_Shutdown(void);
 // Destroys the rendering context, closes the window, resets the resolution,
 // and resets the gamma ramps.
 
@@ -1185,7 +1108,6 @@ void R_LinkLightSurf( const drawSurf_t **link, const srfTriangles_t *tri, const 
 				   const idRenderLightLocal *light, const idMaterial *shader, const idScreenRect &scissor, bool viewInsideShadow );
 
 bool R_CreateAmbientCache( srfTriangles_t *tri, bool needsLighting );
-bool R_CreateLightingCache( const idRenderEntityLocal *ent, const idRenderLightLocal *light, srfTriangles_t *tri );
 void R_CreatePrivateShadowCache( srfTriangles_t *tri );
 void R_CreateVertexProgramShadowCache( srfTriangles_t *tri );
 

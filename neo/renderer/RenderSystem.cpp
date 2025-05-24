@@ -142,7 +142,7 @@ static void R_IssueRenderCommands( void ) {
 	// r_skipRender is usually more usefull, because it will still
 	// draw 2D graphics
 	if ( !r_skipBackEnd.GetBool() ) {
-		RB_ExecuteBackEndCommands( frameData->cmdHead );
+		tr.m_backend.ExecuteBackEndCommands(frameData->cmdHead);
 	}
 
 	R_ClearCommandChain();
@@ -538,83 +538,10 @@ void idRenderSystemLocal::SetBackEndRenderer() {
 		return;
 	}
 
-	bool oldVPstate = backEndRendererHasVertexPrograms;
+	backEndRenderer = BE_FGL;
 
-	backEndRenderer = BE_BAD;
-
-	if ( idStr::Icmp( r_renderer.GetString(), "arb" ) == 0 ) {
-		backEndRenderer = BE_ARB;
-	} else if ( idStr::Icmp( r_renderer.GetString(), "arb2" ) == 0 ) {
-		if ( glConfig.allowARB2Path ) {
-			backEndRenderer = BE_ARB2;
-		}
-	} else if ( idStr::Icmp( r_renderer.GetString(), "nv10" ) == 0 ) {
-		if ( glConfig.allowNV10Path ) {
-			backEndRenderer = BE_NV10;
-		}
-	} else if ( idStr::Icmp( r_renderer.GetString(), "nv20" ) == 0 ) {
-		if ( glConfig.allowNV20Path ) {
-			backEndRenderer = BE_NV20;
-		}
-	} else if ( idStr::Icmp( r_renderer.GetString(), "r200" ) == 0 ) {
-		if ( glConfig.allowR200Path ) {
-			backEndRenderer = BE_R200;
-		}
-	}
-
-	// fallback
-	if ( backEndRenderer == BE_BAD ) {
-		// choose the best
-		if ( glConfig.allowARB2Path ) {
-			backEndRenderer = BE_ARB2;
-		} else if ( glConfig.allowR200Path ) {
-			backEndRenderer = BE_R200;
-		} else if ( glConfig.allowNV20Path ) {
-			backEndRenderer = BE_NV20;
-		} else if ( glConfig.allowNV10Path ) {
-			backEndRenderer = BE_NV10;
-		} else {
-			// the others are considered experimental
-			backEndRenderer = BE_ARB;
-		}
-	}
-
-	backEndRendererHasVertexPrograms = false;
+	backEndRendererHasVertexPrograms = true;
 	backEndRendererMaxLight = 1.0;
-
-	switch( backEndRenderer ) {
-	case BE_ARB:
-		common->Printf( "using ARB renderSystem\n" );
-		break;
-	case BE_NV10:
-		common->Printf( "using NV10 renderSystem\n" );
-		break;
-	case BE_NV20:
-		common->Printf( "using NV20 renderSystem\n" );
-		backEndRendererHasVertexPrograms = true;
-		break;
-	case BE_R200:
-		common->Printf( "using R200 renderSystem\n" );
-		backEndRendererHasVertexPrograms = true;
-		break;
-	case BE_ARB2:
-		common->Printf( "using ARB2 renderSystem\n" );
-		backEndRendererHasVertexPrograms = true;
-		backEndRendererMaxLight = 999;
-		break;
-	default:
-		common->FatalError( "SetbackEndRenderer: bad back end" );
-	}
-
-	// clear the vertex cache if we are changing between
-	// using vertex programs and not, because specular and
-	// shadows will be different data
-	if ( oldVPstate != backEndRendererHasVertexPrograms ) {
-		vertexCache.PurgeAll();
-		if ( primaryWorld ) {
-			primaryWorld->FreeInteractions();
-		}
-	}
 
 	r_renderer.ClearModified();
 }
@@ -681,11 +608,13 @@ void idRenderSystemLocal::BeginFrame( int windowWidth, int windowHeight ) {
 	cmd->commandId = RC_SET_BUFFER;
 	cmd->frameCount = frameCount;
 
+	/*
 	if ( r_frontBuffer.GetBool() ) {
 		cmd->buffer = (int)GL_FRONT;
 	} else {
 		cmd->buffer = (int)GL_BACK;
 	}
+	*/
 }
 
 void idRenderSystemLocal::WriteDemoPics() {
@@ -714,6 +643,32 @@ void idRenderSystemLocal::EndFrame( int *frontEndMsec, int *backEndMsec ) {
 
 	// close any gui drawing
 	guiModel->EmitFullScreen();
+
+	// Allocate full-screen buffer VB and IB
+	// TODO: Make this static!
+	{
+		glIndex_t indices[6] = { 0, 1, 2, 0, 2, 3 };
+		idDrawVert verts[4];
+		for (int i = 0; i < 4; ++i)
+		{
+			verts[i].Clear();
+		}
+		verts[0].xyz = idVec3(0.0f, 0.0f, 0.0f);
+		verts[1].xyz = idVec3(0.0f, 1.0f, 0.0f);
+		verts[2].xyz = idVec3(1.0f, 1.0f, 0.0f);
+		verts[3].xyz = idVec3(1.0f, 0.0f, 0.0f);
+
+		srfTriangles_t tri{};
+		tri.numIndexes = 6;
+		tri.numVerts = 4;
+		tri.indexCache = vertexCache.AllocIndex(indices, 6);
+		tri.ambientCache = vertexCache.AllocVertex(verts, 4);
+
+		m_backend.SetFullscreenTriangles(tri);
+	}
+
+	vertexCache.BeginBackEnd();
+
 	guiModel->Clear();
 
 	// save out timing information
@@ -731,7 +686,7 @@ void idRenderSystemLocal::EndFrame( int *frontEndMsec, int *backEndMsec ) {
 	R_CheckCvars();
 
     // check for errors
-	GL_CheckErrors();
+	//GL_CheckErrors();
 
 	// add the swapbuffers command
 	cmd = (emptyCommand_t *)R_GetCommandBuffer( sizeof( *cmd ) );
@@ -745,7 +700,7 @@ void idRenderSystemLocal::EndFrame( int *frontEndMsec, int *backEndMsec ) {
 	R_ToggleSmpFrame();
 
 	// we can now release the vertexes used this frame
-	vertexCache.EndFrame();
+	//vertexCache.EndFrame();
 
 	if ( session->writeDemo ) {
 		session->writeDemo->WriteInt( DS_RENDER );
@@ -954,6 +909,9 @@ void idRenderSystemLocal::CaptureRenderToFile( const char *fileName, bool fixAlp
 		return;
 	}
 
+	common->Warning("TODO: CaptureRenderToFile %s", fileName);
+	return;
+
 	renderCrop_t *rc = &renderCrops[currentRenderCrop];
 
 	guiModel->EmitFullScreen();
@@ -1036,6 +994,5 @@ bool idRenderSystemLocal::UploadImage( const char *imageName, const byte *data, 
 		return false;
 	}
 	image->UploadScratch( data, width, height );
-	image->SetImageFilterAndRepeat();
 	return true;
 }

@@ -41,6 +41,7 @@ to it that would try to be freed later.  Create the ambientCache immediately.
 =================
 */
 static void R_FinishDeform( drawSurf_t *drawSurf, srfTriangles_t *newTri, idDrawVert *ac ) {
+
 	if ( !newTri ) {
 		return;
 	}
@@ -57,7 +58,9 @@ static void R_FinishDeform( drawSurf_t *drawSurf, srfTriangles_t *newTri, idDraw
 		newTri->verts = NULL;
 	}
 
-	newTri->ambientCache = vertexCache.AllocFrameTemp( ac, newTri->numVerts * sizeof( idDrawVert ) );
+	newTri->indexCache = vertexCache.AllocIndex(newTri->indexes, newTri->numIndexes, sizeof(newTri->indexes[0]));
+
+	newTri->ambientCache = vertexCache.AllocVertex( ac, newTri->numVerts, sizeof( idDrawVert ) );
 	// if we are out of vertex cache, leave it the way it is
 	if ( newTri->ambientCache ) {
 		drawSurf->geo = newTri;
@@ -1016,6 +1019,7 @@ Emit particles from the surface instead of drawing it
 =====================
 */
 static void R_ParticleDeform( drawSurf_t *surf, bool useArea ) {
+
 	const struct renderEntity_s *renderEntity = &surf->space->entityDef->parms;
 	const struct viewDef_s *viewDef = tr.viewDef;
 	const idDeclParticle *particleSystem = (idDeclParticle *)surf->material->GetDeformDecl();
@@ -1208,7 +1212,8 @@ static void R_ParticleDeform( drawSurf_t *surf, bool useArea ) {
 					indexes += 6;
 				}
 				tri->numIndexes = indexes;
-				tri->ambientCache = vertexCache.AllocFrameTemp( tri->verts, tri->numVerts * sizeof( idDrawVert ) );
+				tri->indexCache = vertexCache.AllocIndex(tri->indexes, tri->numIndexes, sizeof(tri->indexes[0]));
+				tri->ambientCache = vertexCache.AllocVertex( tri->verts, tri->numVerts, sizeof( idDrawVert ) );
 				if ( tri->ambientCache ) {
 					// add the drawsurf
 					R_AddDrawSurf( tri, surf->space, renderEntity, stage->material, surf->scissorRect );

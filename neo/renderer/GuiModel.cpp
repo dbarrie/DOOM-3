@@ -159,6 +159,7 @@ EmitSurface
 ================
 */
 void idGuiModel::EmitSurface( guiModelSurface_t *surf, float modelMatrix[16], float modelViewMatrix[16], bool depthHack ) {
+
 	srfTriangles_t	*tri;
 
 	if ( surf->numVerts == 0 ) {
@@ -180,10 +181,11 @@ void idGuiModel::EmitSurface( guiModelSurface_t *surf, float modelMatrix[16], fl
 	memcpy( tri->verts, &verts[surf->firstVert], tri->numVerts * sizeof( tri->verts[0] ) );
 
 	// move the verts to the vertex cache
-	tri->ambientCache = vertexCache.AllocFrameTemp( tri->verts, tri->numVerts * sizeof( tri->verts[0] ) );
+	tri->ambientCache = vertexCache.AllocVertex(tri->verts, tri->numVerts, sizeof(tri->verts[0]));
+	tri->indexCache = vertexCache.AllocIndex(tri->indexes, tri->numIndexes, sizeof(tri->indexes[0]));
 
 	// if we are out of vertex cache, don't create the surface
-	if ( !tri->ambientCache ) {
+	if ( !tri->ambientCache || !tri->indexCache ) {
 		return;
 	}
 
@@ -267,10 +269,10 @@ void idGuiModel::EmitFullScreen( void ) {
 	// qglOrtho( 0, 640, 480, 0, 0, 1 );		// always assume 640x480 virtual coordinates
 	viewDef->projectionMatrix[0] = 2.0f / 640.0f;
 	viewDef->projectionMatrix[5] = -2.0f / 480.0f;
-	viewDef->projectionMatrix[10] = -2.0f / 1.0f;
+	viewDef->projectionMatrix[10] = 1.0f;	// -2.0f / 1.0f;
 	viewDef->projectionMatrix[12] = -1.0f;
 	viewDef->projectionMatrix[13] = 1.0f;
-	viewDef->projectionMatrix[14] = -1.0f;
+	viewDef->projectionMatrix[14] = 0.0f;	// -1.0f;
 	viewDef->projectionMatrix[15] = 1.0f;
 
 	viewDef->worldSpace.modelViewMatrix[0] = 1.0f;
@@ -492,6 +494,8 @@ void idGuiModel::DrawStretchPic( float x, float y, float w, float h, float s1, f
 		return;		// completely clipped away
 	}
 
+	//common->Printf("DrawStretchPic %s (%f, %f) - (%f, %f)\n", hShader->GetName(), x, y, x+w, y+h);
+
 	indexes[0] = 3;
 	indexes[1] = 0;
 	indexes[2] = 2;
@@ -577,6 +581,8 @@ void idGuiModel::DrawStretchTri( idVec2 p1, idVec2 p2, idVec2 p3, idVec2 t1, idV
 	if ( !material ) {
 		return;
 	}
+
+	//common->Printf("DrawStretchTri %s (%f, %f) - (%f, %f) - (%f, %f)\n", material->GetName(), p1.x, p1.y, p2.x, p2.y, p3.x, p3.y);
 
 	tempIndexes[0] = 1;
 	tempIndexes[1] = 0;

@@ -37,7 +37,10 @@ If you have questions concerning this license or the applicable additional terms
 ===============================================================================
 */
 
-class idDrawVert {
+#pragma warning(push)
+#pragma warning(disable : 4324)
+
+class alignas(16) idDrawVert {
 public:
 	idVec3			xyz;
 	idVec2			st;
@@ -60,6 +63,8 @@ public:
 	void			SetColor( dword color );
 	dword			GetColor( void ) const;
 };
+
+#pragma warning(pop)
 
 ID_INLINE float idDrawVert::operator[]( const int index ) const {
 	assert( index >= 0 && index < 5 );

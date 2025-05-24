@@ -97,9 +97,8 @@ void RB_SetDefaultGLState( void ) {
 		if ( glConfig.texture3DAvailable ) {
 			qglDisable( GL_TEXTURE_3D );
 		}
-		if ( glConfig.cubeMapAvailable ) {
+
 			qglDisable( GL_TEXTURE_CUBE_MAP_EXT );
-		}
 	}
 }
 
@@ -112,6 +111,14 @@ RB_LogComment
 void RB_LogComment( const char *comment, ... ) {
    va_list marker;
 
+   char str[256];
+   va_start(marker, comment);
+   vsprintf(str, comment, marker);
+   va_end(marker);
+
+   OutputDebugStringA(str);
+
+   /*
 	if ( !tr.logFile ) {
 		return;
 	}
@@ -120,6 +127,7 @@ void RB_LogComment( const char *comment, ... ) {
 	va_start( marker, comment );
 	vfprintf( tr.logFile, comment, marker );
 	va_end( marker );
+	*/
 }
 
 
@@ -237,8 +245,9 @@ This routine is responsible for setting the most commonly changed state
 ====================
 */
 void GL_State( int stateBits ) {
+#if 0
 	int	diff;
-	
+
 	if ( !r_useStateCaching.GetBool() || backEnd.glState.forceGlState ) {
 		// make sure everything is set all the time, so we
 		// can see if our delta checking is screwing up
@@ -400,6 +409,7 @@ void GL_State( int stateBits ) {
 	}
 
 	backEnd.glState.glStateBits = stateBits;
+#endif
 }
 
 
@@ -459,7 +469,7 @@ static void	RB_SetBuffer( const void *data ) {
 
 	backEnd.frameCount = cmd->frameCount;
 
-	qglDrawBuffer( cmd->buffer );
+	//qglDrawBuffer( cmd->buffer );
 
 	// clear screen for debugging
 	// automatically enable this with several other debug tools
@@ -505,7 +515,7 @@ void RB_ShowImages( void ) {
 	for ( i = 0 ; i < globalImages->images.Num() ; i++ ) {
 		image = globalImages->images[i];
 
-		if ( image->texnum == idImage::TEXTURE_NOT_LOADED && image->partialImage == NULL ) {
+		if ( !image->IsLoaded() && image->partialImage == NULL ) {
 			continue;
 		}
 
@@ -520,7 +530,7 @@ void RB_ShowImages( void ) {
 			h *= image->uploadHeight / 512.0f;
 		}
 
-		image->Bind();
+		image->Bind(0);
 		qglBegin (GL_QUADS);
 		qglTexCoord2f( 0, 0 );
 		qglVertex2f( x, y );
@@ -554,7 +564,7 @@ const void	RB_SwapBuffers( const void *data ) {
 
 	// force a gl sync if requested
 	if ( r_finish.GetBool() ) {
-		qglFinish();
+	//	qglFinish();
 	}
 
     RB_LogComment( "***************** RB_SwapBuffers *****************\n\n\n" );
@@ -596,6 +606,7 @@ This function will be called syncronously if running without
 smp extensions, or asyncronously by another thread.
 ====================
 */
+#if 0
 int		backEndStartTime, backEndFinishTime;
 void RB_ExecuteBackEndCommands( const emptyCommand_t *cmds ) {
 	// r_debugRenderToTexture
@@ -657,3 +668,4 @@ void RB_ExecuteBackEndCommands( const emptyCommand_t *cmds ) {
 		backEnd.c_copyFrameBuffer = 0;
 	}
 }
+#endif

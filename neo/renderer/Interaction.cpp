@@ -1126,27 +1126,11 @@ void idInteraction::AddActiveInteraction( void ) {
 					// reference the original surface's ambient cache
 					lightTris->ambientCache = tri->ambientCache;
 
-					// touch the ambient surface so it won't get purged
-					vertexCache.Touch( lightTris->ambientCache );
-
-					// regenerate the lighting cache (for non-vertex program cards) if it has been purged
-					if ( !lightTris->lightingCache ) {
-						if ( !R_CreateLightingCache( entityDef, lightDef, lightTris ) ) {
-							// skip if we are out of vertex memory
-							continue;
-						}
-					}
 					// touch the light surface so it won't get purged
 					// (vertex program cards won't have a light cache at all)
-					if ( lightTris->lightingCache ) {
-						vertexCache.Touch( lightTris->lightingCache );
-					}
 
-					if ( !lightTris->indexCache && r_useIndexBuffers.GetBool() ) {
-						vertexCache.Alloc( lightTris->indexes, lightTris->numIndexes * sizeof( lightTris->indexes[0] ), &lightTris->indexCache, true );
-					}
-					if ( lightTris->indexCache ) {
-						vertexCache.Touch( lightTris->indexCache );
+					if (!vertexCache.CacheIsCurrent(lightTris->indexCache)) {
+						lightTris->indexCache = vertexCache.AllocIndex(lightTris->indexes, lightTris->numIndexes, sizeof(lightTris->indexes[0]));
 					}
 
 					// add the surface to the light list
@@ -1222,11 +1206,9 @@ void idInteraction::AddActiveInteraction( void ) {
 			}
 
 			// touch the shadow surface so it won't get purged
-			vertexCache.Touch( shadowTris->shadowCache );
 
-			if ( !shadowTris->indexCache && r_useIndexBuffers.GetBool() ) {
-				vertexCache.Alloc( shadowTris->indexes, shadowTris->numIndexes * sizeof( shadowTris->indexes[0] ), &shadowTris->indexCache, true );
-				vertexCache.Touch( shadowTris->indexCache );
+			if (!vertexCache.CacheIsCurrent(shadowTris->indexCache)) {
+				shadowTris->indexCache = vertexCache.AllocIndex(shadowTris->indexes, shadowTris->numIndexes, sizeof(shadowTris->indexes[0]));
 			}
 
 			// see if we can avoid using the shadow volume caps

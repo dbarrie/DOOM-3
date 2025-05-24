@@ -48,7 +48,8 @@ idCVar r_inhibitFragmentProgram( "r_inhibitFragmentProgram", "0", CVAR_RENDERER 
 idCVar r_glDriver( "r_glDriver", "", CVAR_RENDERER, "\"opengl32\", etc." );
 idCVar r_useLightPortalFlow( "r_useLightPortalFlow", "1", CVAR_RENDERER | CVAR_BOOL, "use a more precise area reference determination" );
 idCVar r_multiSamples( "r_multiSamples", "0", CVAR_RENDERER | CVAR_ARCHIVE | CVAR_INTEGER, "number of antialiasing samples" );
-idCVar r_mode( "r_mode", "3", CVAR_ARCHIVE | CVAR_RENDERER | CVAR_INTEGER, "video mode number" );
+idCVar r_mode( "r_mode", "4", CVAR_ARCHIVE | CVAR_RENDERER | CVAR_INTEGER, "video mode number" );
+idCVar r_pixelDouble("r_pixelDouble", "1", CVAR_ARCHIVE | CVAR_RENDERER | CVAR_BOOL, "pixel doubled rendering");
 idCVar r_displayRefresh( "r_displayRefresh", "0", CVAR_RENDERER | CVAR_INTEGER | CVAR_NOCHEAT, "optional display refresh rate option for vid mode", 0.0f, 200.0f );
 idCVar r_fullscreen( "r_fullscreen", "1", CVAR_RENDERER | CVAR_ARCHIVE | CVAR_BOOL, "0 = windowed, 1 = full screen" );
 idCVar r_customWidth( "r_customWidth", "720", CVAR_RENDERER | CVAR_ARCHIVE | CVAR_INTEGER, "custom screen width. set r_mode to -1 to activate" );
@@ -325,279 +326,6 @@ bool R_CheckExtension( char *name ) {
 	return true;
 }
 
-/*
-==================
-R_CheckPortableExtensions
-
-==================
-*/
-static void R_CheckPortableExtensions( void ) {
-	glConfig.glVersion = atof( glConfig.version_string );
-
-	// GL_ARB_multitexture
-	glConfig.multitextureAvailable = R_CheckExtension( "GL_ARB_multitexture" );
-	if ( glConfig.multitextureAvailable ) {
-		qglMultiTexCoord2fARB = (void(APIENTRY *)(GLenum, GLfloat, GLfloat))GLimp_ExtensionPointer( "glMultiTexCoord2fARB" );
-		qglMultiTexCoord2fvARB = (void(APIENTRY *)(GLenum, GLfloat *))GLimp_ExtensionPointer( "glMultiTexCoord2fvARB" );
-		qglActiveTextureARB = (void(APIENTRY *)(GLenum))GLimp_ExtensionPointer( "glActiveTextureARB" );
-		qglClientActiveTextureARB = (void(APIENTRY *)(GLenum))GLimp_ExtensionPointer( "glClientActiveTextureARB" );
-		qglGetIntegerv( GL_MAX_TEXTURE_UNITS_ARB, (GLint *)&glConfig.maxTextureUnits );
-		if ( glConfig.maxTextureUnits > MAX_MULTITEXTURE_UNITS ) {
-			glConfig.maxTextureUnits = MAX_MULTITEXTURE_UNITS;
-		}
-		if ( glConfig.maxTextureUnits < 2 ) {
-			glConfig.multitextureAvailable = false;	// shouldn't ever happen
-		}
-		qglGetIntegerv( GL_MAX_TEXTURE_COORDS_ARB, (GLint *)&glConfig.maxTextureCoords );
-		qglGetIntegerv( GL_MAX_TEXTURE_IMAGE_UNITS_ARB, (GLint *)&glConfig.maxTextureImageUnits );
-	}
-
-	// GL_ARB_texture_env_combine
-	glConfig.textureEnvCombineAvailable = R_CheckExtension( "GL_ARB_texture_env_combine" );
-
-	// GL_ARB_texture_cube_map
-	glConfig.cubeMapAvailable = R_CheckExtension( "GL_ARB_texture_cube_map" );
-
-	// GL_ARB_texture_env_dot3
-	glConfig.envDot3Available = R_CheckExtension( "GL_ARB_texture_env_dot3" );
-
-	// GL_ARB_texture_env_add
-	glConfig.textureEnvAddAvailable = R_CheckExtension( "GL_ARB_texture_env_add" );
-
-	// GL_ARB_texture_non_power_of_two
-	glConfig.textureNonPowerOfTwoAvailable = R_CheckExtension( "GL_ARB_texture_non_power_of_two" );
-
-	// GL_ARB_texture_compression + GL_S3_s3tc
-	// DRI drivers may have GL_ARB_texture_compression but no GL_EXT_texture_compression_s3tc
-	if ( R_CheckExtension( "GL_ARB_texture_compression" ) && R_CheckExtension( "GL_EXT_texture_compression_s3tc" ) ) {
-		glConfig.textureCompressionAvailable = true;
-		qglCompressedTexImage2DARB = (PFNGLCOMPRESSEDTEXIMAGE2DARBPROC)GLimp_ExtensionPointer( "glCompressedTexImage2DARB" );
-		qglGetCompressedTexImageARB = (PFNGLGETCOMPRESSEDTEXIMAGEARBPROC)GLimp_ExtensionPointer( "glGetCompressedTexImageARB" );
-	} else {
-		glConfig.textureCompressionAvailable = false;
-	}
-
-	// GL_EXT_texture_filter_anisotropic
-	glConfig.anisotropicAvailable = R_CheckExtension( "GL_EXT_texture_filter_anisotropic" );
-	if ( glConfig.anisotropicAvailable ) {
-		qglGetFloatv( GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &glConfig.maxTextureAnisotropy );
-		common->Printf( "   maxTextureAnisotropy: %f\n", glConfig.maxTextureAnisotropy );
-	} else {
-		glConfig.maxTextureAnisotropy = 1;
-	}
-
-	// GL_EXT_texture_lod_bias
-	// The actual extension is broken as specificed, storing the state in the texture unit instead
-	// of the texture object.  The behavior in GL 1.4 is the behavior we use.
-	if ( glConfig.glVersion >= 1.4 || R_CheckExtension( "GL_EXT_texture_lod" ) ) {
-		common->Printf( "...using %s\n", "GL_1.4_texture_lod_bias" );
-		glConfig.textureLODBiasAvailable = true;
-	} else {
-		common->Printf( "X..%s not found\n", "GL_1.4_texture_lod_bias" );
-		glConfig.textureLODBiasAvailable = false;
-	}
-
-	// GL_EXT_shared_texture_palette
-	glConfig.sharedTexturePaletteAvailable = R_CheckExtension( "GL_EXT_shared_texture_palette" );
-	if ( glConfig.sharedTexturePaletteAvailable ) {
-		qglColorTableEXT = ( void ( APIENTRY * ) ( int, int, int, int, int, const void * ) ) GLimp_ExtensionPointer( "glColorTableEXT" );
-	}
-
-	// GL_EXT_texture3D (not currently used for anything)
-	glConfig.texture3DAvailable = R_CheckExtension( "GL_EXT_texture3D" );
-	if ( glConfig.texture3DAvailable ) {
-		qglTexImage3D = 
-			(void (APIENTRY *)(GLenum, GLint, GLint, GLsizei, GLsizei, GLsizei, GLint, GLenum, GLenum, const GLvoid *) )
-			GLimp_ExtensionPointer( "glTexImage3D" );
-	}
-
-	// EXT_stencil_wrap
-	// This isn't very important, but some pathological case might cause a clamp error and give a shadow bug.
-	// Nvidia also believes that future hardware may be able to run faster with this enabled to avoid the
-	// serialization of clamping.
-	if ( R_CheckExtension( "GL_EXT_stencil_wrap" ) ) {
-		tr.stencilIncr = GL_INCR_WRAP_EXT;
-		tr.stencilDecr = GL_DECR_WRAP_EXT;
-	} else {
-		tr.stencilIncr = GL_INCR;
-		tr.stencilDecr = GL_DECR;
-	}
-
-	// GL_NV_register_combiners
-	glConfig.registerCombinersAvailable = R_CheckExtension( "GL_NV_register_combiners" );
-	if ( glConfig.registerCombinersAvailable ) {
-		qglCombinerParameterfvNV = (void (APIENTRY *)( GLenum pname, const GLfloat *params ))
-			GLimp_ExtensionPointer( "glCombinerParameterfvNV" );
-		qglCombinerParameterivNV = (void (APIENTRY *)( GLenum pname, const GLint *params ))
-			GLimp_ExtensionPointer( "glCombinerParameterivNV" );
-		qglCombinerParameterfNV = (void (APIENTRY *)( GLenum pname, const GLfloat param ))
-			GLimp_ExtensionPointer( "glCombinerParameterfNV" );
-		qglCombinerParameteriNV = (void (APIENTRY *)( GLenum pname, const GLint param ))
-			GLimp_ExtensionPointer( "glCombinerParameteriNV" );
-		qglCombinerInputNV = (void (APIENTRY *)( GLenum stage, GLenum portion, GLenum variable, GLenum input,
-											  GLenum mapping, GLenum componentUsage ))
-			GLimp_ExtensionPointer( "glCombinerInputNV" );
-		qglCombinerOutputNV = (void (APIENTRY *)( GLenum stage, GLenum portion, GLenum abOutput, GLenum cdOutput, 
-											   GLenum sumOutput, GLenum scale, GLenum bias, GLboolean abDotProduct,
-											   GLboolean cdDotProduct, GLboolean muxSum ))
-			GLimp_ExtensionPointer( "glCombinerOutputNV" );
-		qglFinalCombinerInputNV = (void (APIENTRY *)( GLenum variable, GLenum input, GLenum mapping, GLenum componentUsage ))
-			GLimp_ExtensionPointer( "glFinalCombinerInputNV" );
-	}
-
-	// GL_EXT_stencil_two_side
-	glConfig.twoSidedStencilAvailable = R_CheckExtension( "GL_EXT_stencil_two_side" );
-	if ( glConfig.twoSidedStencilAvailable ) {
-		qglActiveStencilFaceEXT = (PFNGLACTIVESTENCILFACEEXTPROC)GLimp_ExtensionPointer( "glActiveStencilFaceEXT" );
-	} else {
-		glConfig.atiTwoSidedStencilAvailable = R_CheckExtension( "GL_ATI_separate_stencil" );
-		if ( glConfig.atiTwoSidedStencilAvailable ) {
-			qglStencilFuncSeparateATI  = (PFNGLSTENCILFUNCSEPARATEATIPROC)GLimp_ExtensionPointer( "glStencilFuncSeparateATI" );
-			qglStencilOpSeparateATI = (PFNGLSTENCILOPSEPARATEATIPROC)GLimp_ExtensionPointer( "glStencilOpSeparateATI" );
-		}
-	}
-
-	// GL_ATI_fragment_shader
-	glConfig.atiFragmentShaderAvailable = R_CheckExtension( "GL_ATI_fragment_shader" );
-	if (! glConfig.atiFragmentShaderAvailable ) {
-		// only on OSX: ATI_fragment_shader is faked through ATI_text_fragment_shader (macosx_glimp.cpp)
-		glConfig.atiFragmentShaderAvailable = R_CheckExtension( "GL_ATI_text_fragment_shader" );
-	}
-	if ( glConfig.atiFragmentShaderAvailable ) {
-		qglGenFragmentShadersATI = (PFNGLGENFRAGMENTSHADERSATIPROC)GLimp_ExtensionPointer( "glGenFragmentShadersATI" );
-		qglBindFragmentShaderATI = (PFNGLBINDFRAGMENTSHADERATIPROC)GLimp_ExtensionPointer( "glBindFragmentShaderATI" );
-		qglDeleteFragmentShaderATI = (PFNGLDELETEFRAGMENTSHADERATIPROC)GLimp_ExtensionPointer( "glDeleteFragmentShaderATI" );
-		qglBeginFragmentShaderATI = (PFNGLBEGINFRAGMENTSHADERATIPROC)GLimp_ExtensionPointer( "glBeginFragmentShaderATI" );
-		qglEndFragmentShaderATI = (PFNGLENDFRAGMENTSHADERATIPROC)GLimp_ExtensionPointer( "glEndFragmentShaderATI" );
-		qglPassTexCoordATI = (PFNGLPASSTEXCOORDATIPROC)GLimp_ExtensionPointer( "glPassTexCoordATI" );
-		qglSampleMapATI = (PFNGLSAMPLEMAPATIPROC)GLimp_ExtensionPointer( "glSampleMapATI" );
-		qglColorFragmentOp1ATI = (PFNGLCOLORFRAGMENTOP1ATIPROC)GLimp_ExtensionPointer( "glColorFragmentOp1ATI" );
-		qglColorFragmentOp2ATI = (PFNGLCOLORFRAGMENTOP2ATIPROC)GLimp_ExtensionPointer( "glColorFragmentOp2ATI" );
-		qglColorFragmentOp3ATI = (PFNGLCOLORFRAGMENTOP3ATIPROC)GLimp_ExtensionPointer( "glColorFragmentOp3ATI" );
-		qglAlphaFragmentOp1ATI = (PFNGLALPHAFRAGMENTOP1ATIPROC)GLimp_ExtensionPointer( "glAlphaFragmentOp1ATI" );
-		qglAlphaFragmentOp2ATI = (PFNGLALPHAFRAGMENTOP2ATIPROC)GLimp_ExtensionPointer( "glAlphaFragmentOp2ATI" );
-		qglAlphaFragmentOp3ATI = (PFNGLALPHAFRAGMENTOP3ATIPROC)GLimp_ExtensionPointer( "glAlphaFragmentOp3ATI" );
-		qglSetFragmentShaderConstantATI = (PFNGLSETFRAGMENTSHADERCONSTANTATIPROC)GLimp_ExtensionPointer( "glSetFragmentShaderConstantATI" );
-	}
-
-	// ARB_vertex_buffer_object
-	glConfig.ARBVertexBufferObjectAvailable = R_CheckExtension( "GL_ARB_vertex_buffer_object" );
-	if(glConfig.ARBVertexBufferObjectAvailable) {
-		qglBindBufferARB = (PFNGLBINDBUFFERARBPROC)GLimp_ExtensionPointer( "glBindBufferARB");
-		qglDeleteBuffersARB = (PFNGLDELETEBUFFERSARBPROC)GLimp_ExtensionPointer( "glDeleteBuffersARB");
-		qglGenBuffersARB = (PFNGLGENBUFFERSARBPROC)GLimp_ExtensionPointer( "glGenBuffersARB");
-		qglIsBufferARB = (PFNGLISBUFFERARBPROC)GLimp_ExtensionPointer( "glIsBufferARB");
-		qglBufferDataARB = (PFNGLBUFFERDATAARBPROC)GLimp_ExtensionPointer( "glBufferDataARB");
-		qglBufferSubDataARB = (PFNGLBUFFERSUBDATAARBPROC)GLimp_ExtensionPointer( "glBufferSubDataARB");
-		qglGetBufferSubDataARB = (PFNGLGETBUFFERSUBDATAARBPROC)GLimp_ExtensionPointer( "glGetBufferSubDataARB");
-		qglMapBufferARB = (PFNGLMAPBUFFERARBPROC)GLimp_ExtensionPointer( "glMapBufferARB");
-		qglUnmapBufferARB = (PFNGLUNMAPBUFFERARBPROC)GLimp_ExtensionPointer( "glUnmapBufferARB");
-		qglGetBufferParameterivARB = (PFNGLGETBUFFERPARAMETERIVARBPROC)GLimp_ExtensionPointer( "glGetBufferParameterivARB");
-		qglGetBufferPointervARB = (PFNGLGETBUFFERPOINTERVARBPROC)GLimp_ExtensionPointer( "glGetBufferPointervARB");
-	}
-
-	// ARB_vertex_program
-	glConfig.ARBVertexProgramAvailable = R_CheckExtension( "GL_ARB_vertex_program" );
-	if (glConfig.ARBVertexProgramAvailable) {
-		qglVertexAttribPointerARB = (PFNGLVERTEXATTRIBPOINTERARBPROC)GLimp_ExtensionPointer( "glVertexAttribPointerARB" );
-		qglEnableVertexAttribArrayARB = (PFNGLENABLEVERTEXATTRIBARRAYARBPROC)GLimp_ExtensionPointer( "glEnableVertexAttribArrayARB" );
-		qglDisableVertexAttribArrayARB = (PFNGLDISABLEVERTEXATTRIBARRAYARBPROC)GLimp_ExtensionPointer( "glDisableVertexAttribArrayARB" );
-		qglProgramStringARB = (PFNGLPROGRAMSTRINGARBPROC)GLimp_ExtensionPointer( "glProgramStringARB" );
-		qglBindProgramARB = (PFNGLBINDPROGRAMARBPROC)GLimp_ExtensionPointer( "glBindProgramARB" );
-		qglGenProgramsARB = (PFNGLGENPROGRAMSARBPROC)GLimp_ExtensionPointer( "glGenProgramsARB" );
-		qglProgramEnvParameter4fvARB = (PFNGLPROGRAMENVPARAMETER4FVARBPROC)GLimp_ExtensionPointer( "glProgramEnvParameter4fvARB" );
-		qglProgramLocalParameter4fvARB = (PFNGLPROGRAMLOCALPARAMETER4FVARBPROC)GLimp_ExtensionPointer( "glProgramLocalParameter4fvARB" );
-	}
-
-	// ARB_fragment_program
-	if ( r_inhibitFragmentProgram.GetBool() ) {
-		glConfig.ARBFragmentProgramAvailable = false;
-	} else {
-		glConfig.ARBFragmentProgramAvailable = R_CheckExtension( "GL_ARB_fragment_program" );
-		if (glConfig.ARBFragmentProgramAvailable) {
-			// these are the same as ARB_vertex_program
-			qglProgramStringARB = (PFNGLPROGRAMSTRINGARBPROC)GLimp_ExtensionPointer( "glProgramStringARB" );
-			qglBindProgramARB = (PFNGLBINDPROGRAMARBPROC)GLimp_ExtensionPointer( "glBindProgramARB" );
-			qglProgramEnvParameter4fvARB = (PFNGLPROGRAMENVPARAMETER4FVARBPROC)GLimp_ExtensionPointer( "glProgramEnvParameter4fvARB" );
-			qglProgramLocalParameter4fvARB = (PFNGLPROGRAMLOCALPARAMETER4FVARBPROC)GLimp_ExtensionPointer( "glProgramLocalParameter4fvARB" );
-		}
-	}
-
-	// check for minimum set
-	if ( !glConfig.multitextureAvailable || !glConfig.textureEnvCombineAvailable || !glConfig.cubeMapAvailable
-		|| !glConfig.envDot3Available ) {
-			common->Error( common->GetLanguageDict()->GetString( "#str_06780" ) );
-	}
-
- 	// GL_EXT_depth_bounds_test
- 	glConfig.depthBoundsTestAvailable = R_CheckExtension( "EXT_depth_bounds_test" );
- 	if ( glConfig.depthBoundsTestAvailable ) {
- 		qglDepthBoundsEXT = (PFNGLDEPTHBOUNDSEXTPROC)GLimp_ExtensionPointer( "glDepthBoundsEXT" );
- 	}
-
-}
-
-
-/*
-====================
-R_GetModeInfo
-
-r_mode is normally a small non-negative integer that
-looks resolutions up in a table, but if it is set to -1,
-the values from r_customWidth, amd r_customHeight
-will be used instead.
-====================
-*/
-typedef struct vidmode_s {
-    const char *description;
-    int         width, height;
-} vidmode_t;
-
-vidmode_t r_vidModes[] = {
-    { "Mode  0: 320x240",		320,	240 },
-    { "Mode  1: 400x300",		400,	300 },
-    { "Mode  2: 512x384",		512,	384 },
-    { "Mode  3: 640x480",		640,	480 },
-    { "Mode  4: 800x600",		800,	600 },
-    { "Mode  5: 1024x768",		1024,	768 },
-    { "Mode  6: 1152x864",		1152,	864 },
-    { "Mode  7: 1280x1024",		1280,	1024 },
-    { "Mode  8: 1600x1200",		1600,	1200 },
-};
-static int	s_numVidModes = ( sizeof( r_vidModes ) / sizeof( r_vidModes[0] ) );
-
-#if MACOS_X
-bool R_GetModeInfo( int *width, int *height, int mode ) {
-#else
-static bool R_GetModeInfo( int *width, int *height, int mode ) {
-#endif
-	vidmode_t	*vm;
-
-    if ( mode < -1 ) {
-        return false;
-	}
-	if ( mode >= s_numVidModes ) {
-		return false;
-	}
-
-	if ( mode == -1 ) {
-		*width = r_customWidth.GetInteger();
-		*height = r_customHeight.GetInteger();
-		return true;
-	}
-
-	vm = &r_vidModes[mode];
-
-	if ( width ) {
-		*width  = vm->width;
-	}
-	if ( height ) {
-		*height = vm->height;
-	}
-
-    return true;
-}
-
 
 /*
 ==================
@@ -615,6 +343,7 @@ all renderSystem functions will still operate properly, notably the material
 and model information functions.
 ==================
 */
+/*
 void R_InitOpenGL( void ) {
 	GLint			temp;
 	glimpParms_t	parms;
@@ -682,15 +411,6 @@ void R_InitOpenGL( void ) {
 
 	glConfig.isInitialized = true;
 
-	// recheck all the extensions (FIXME: this might be dangerous)
-	R_CheckPortableExtensions();
-
-	// parse our vertex and fragment programs, possibly disably support for
-	// one of the paths if there was an error
-	R_NV10_Init();
-	R_NV20_Init();
-	R_R200_Init();
-	R_ARB2_Init();
 
 	cmdSystem->AddCommand( "reloadARBprograms", R_ReloadARBPrograms_f, CMD_FL_RENDERER, "reloads ARB programs" );
 	R_ReloadARBPrograms_f( idCmdArgs() );
@@ -730,6 +450,7 @@ void R_InitOpenGL( void ) {
 	}
 #endif
 }
+*/
 
 /*
 ==================
@@ -806,20 +527,7 @@ static void R_ReloadSurface_f( const idCmdArgs &args ) {
 
 
 
-/*
-==============
-R_ListModes_f
-==============
-*/
-static void R_ListModes_f( const idCmdArgs &args ) {
-	int i;
 
-	common->Printf( "\n" );
-	for ( i = 0; i < s_numVidModes; i++ ) {
-		common->Printf( "%s\n", r_vidModes[i].description );
-	}
-	common->Printf( "\n" );
-}
 
 
 
@@ -1801,33 +1509,6 @@ void GfxInfo_f( const idCmdArgs &args ) {
 	}
 	common->Printf( "CPU: %s\n", Sys_GetProcessorString() );
 
-	const char *active[2] = { "", " (ACTIVE)" };
-	common->Printf( "ARB path ENABLED%s\n", active[tr.backEndRenderer == BE_ARB] );
-
-	if ( glConfig.allowNV10Path ) {
-		common->Printf( "NV10 path ENABLED%s\n", active[tr.backEndRenderer == BE_NV10] );
-	} else {
-		common->Printf( "NV10 path disabled\n" );
-	}
-
-	if ( glConfig.allowNV20Path ) {
-		common->Printf( "NV20 path ENABLED%s\n", active[tr.backEndRenderer == BE_NV20] );
-	} else {
-		common->Printf( "NV20 path disabled\n" );
-	}
-
-	if ( glConfig.allowR200Path ) {
-		common->Printf( "R200 path ENABLED%s\n", active[tr.backEndRenderer == BE_R200] );
-	} else {
-		common->Printf( "R200 path disabled\n" );
-	}
-
-	if ( glConfig.allowARB2Path ) {
-		common->Printf( "ARB2 path ENABLED%s\n", active[tr.backEndRenderer == BE_ARB2] );
-	} else {
-		common->Printf( "ARB2 path disabled\n" );
-	}
-
 	//=============================
 
 	common->Printf( "-------\n" );
@@ -1860,11 +1541,13 @@ extern	PFNWGLSWAPINTERVALEXTPROC wglSwapIntervalEXT;
 		common->Printf( "Using two sided stencil\n" );
 	}
 
+	/*
 	if ( vertexCache.IsFast() ) {
 		common->Printf( "Vertex cache is fast\n" );
 	} else {
 		common->Printf( "Vertex cache is SLOW\n" );
 	}
+	*/
 }
 
 /*
@@ -1925,7 +1608,9 @@ void R_VidRestart_f( const idCmdArgs &args ) {
 		if ( forceWindow ) {
 			cvarSystem->SetCVarBool( "r_fullscreen", false );
 		}
-		R_InitOpenGL();
+
+		tr.m_backend.Init();
+
 		cvarSystem->SetCVarBool( "r_fullscreen", latch );
 
 		// regenerate all images
@@ -2068,7 +1753,7 @@ void R_InitCommands( void ) {
 	cmdSystem->AddCommand( "vid_restart", R_VidRestart_f, CMD_FL_RENDERER, "restarts renderSystem" );
 	cmdSystem->AddCommand( "listRenderEntityDefs", R_ListRenderEntityDefs_f, CMD_FL_RENDERER, "lists the entity defs" );
 	cmdSystem->AddCommand( "listRenderLightDefs", R_ListRenderLightDefs_f, CMD_FL_RENDERER, "lists the light defs" );
-	cmdSystem->AddCommand( "listModes", R_ListModes_f, CMD_FL_RENDERER, "lists all video modes" );
+	
 	cmdSystem->AddCommand( "reloadSurface", R_ReloadSurface_f, CMD_FL_RENDERER, "reloads the decl and images for selected surface" );
 }
 
@@ -2248,16 +1933,10 @@ idRenderSystemLocal::InitOpenGL
 void idRenderSystemLocal::InitOpenGL( void ) {
 	// if OpenGL isn't started, start it now
 	if ( !glConfig.isInitialized ) {
-		int	err;
 
-		R_InitOpenGL();
+		m_backend.Init();
 
 		globalImages->ReloadAllImages();
-
-		err = qglGetError();
-		if ( err != GL_NO_ERROR ) {
-			common->Printf( "glGetError() = 0x%x\n", err );
-		}
 	}
 }
 
@@ -2300,7 +1979,7 @@ idRenderSystemLocal::GetScreenWidth
 ========================
 */
 int idRenderSystemLocal::GetScreenWidth( void ) const {
-	return glConfig.vidWidth;
+	return (int)m_backend.GetSwapchainExtent().width;
 }
 
 /*
@@ -2309,7 +1988,7 @@ idRenderSystemLocal::GetScreenHeight
 ========================
 */
 int idRenderSystemLocal::GetScreenHeight( void ) const {
-	return glConfig.vidHeight;
+	return (int)m_backend.GetSwapchainExtent().height;
 }
 
 /*
@@ -2318,7 +1997,7 @@ idRenderSystemLocal::GetCardCaps
 ========================
 */
 void idRenderSystemLocal::GetCardCaps( bool &oldCard, bool &nv10or20 ) {
-	nv10or20 = ( tr.backEndRenderer == BE_NV10 || tr.backEndRenderer == BE_NV20 );
-	oldCard = ( tr.backEndRenderer == BE_ARB || tr.backEndRenderer == BE_R200 || tr.backEndRenderer == BE_NV10 || tr.backEndRenderer == BE_NV20 );
+	oldCard = false;
+	nv10or20 = false;
 }
 

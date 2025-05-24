@@ -29,6 +29,8 @@ If you have questions concerning this license or the applicable additional terms
 #ifndef __MODEL_H__
 #define __MODEL_H__
 
+#include "RenderCommon.h"
+
 /*
 ===============================================================================
 
@@ -43,20 +45,6 @@ If you have questions concerning this license or the applicable additional terms
 #define MD5_ANIM_EXT			"md5anim"
 #define MD5_CAMERA_EXT			"md5camera"
 #define MD5_VERSION				10
-
-// using shorts for triangle indexes can save a significant amount of traffic, but
-// to support the large models that renderBump loads, they need to be 32 bits
-#if 1
-
-#define GL_INDEX_TYPE		GL_UNSIGNED_INT
-typedef int glIndex_t;
-
-#else
-
-#define GL_INDEX_TYPE		GL_UNSIGNED_SHORT
-typedef short glIndex_t;
-
-#endif
 
 
 typedef struct {
@@ -133,10 +121,9 @@ typedef struct srfTriangles_s {
 	struct srfTriangles_s *		nextDeferredFree;		// chain of tris to free next frame
 
 	// data in vertex object space, not directly readable by the CPU
-	struct vertCache_s *		indexCache;				// int
-	struct vertCache_s *		ambientCache;			// idDrawVert
-	struct vertCache_s *		lightingCache;			// lightingCache_t
-	struct vertCache_s *		shadowCache;			// shadowCache_t
+	vertCacheHandle_t			indexCache;				// int
+	vertCacheHandle_t			ambientCache;			// idDrawVert
+	vertCacheHandle_t			shadowCache;			// shadowCache_t
 } srfTriangles_t;
 
 typedef idList<srfTriangles_t *> idTriList;

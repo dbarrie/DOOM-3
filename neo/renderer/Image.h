@@ -130,9 +130,7 @@ typedef enum {
 typedef enum {
 	TT_DISABLED,
 	TT_2D,
-	TT_3D,
-	TT_CUBIC,
-	TT_RECT
+	TT_CUBIC
 } textureType_t;
 
 typedef enum {
@@ -147,14 +145,17 @@ class idImage {
 public:
 				idImage();
 
+	bool		IsLoaded() const { return m_image != FGL_NULL_HANDLE;  }
+	FglImageView GetView() const { return m_imageView; }
+	FglSampler	GetSampler() const { return m_sampler; }
+
 	// Makes this image active on the current GL texture unit.
 	// automatically enables or disables cube mapping or texture3D
 	// May perform file loading if the image was not preloaded.
 	// May start a background image read.
-	void		Bind();
+	void		Bind(int slot);
 
-	// for use with fragment programs, doesn't change any enable2D/3D/cube states
-	void		BindFragment();
+	void		AllocImage(int width, int height, int numMips, int numLayers, FglFormat format, FglImageViewType viewType);
 
 	// deletes the texture object, but leaves the structure so it can be reloaded
 	void		PurgeImage();
@@ -179,6 +180,8 @@ public:
 
 	void		UploadScratch( const byte *pic, int width, int height );
 
+	void		CreateSampler();
+
 	// just for resource tracking
 	void		SetClassification( int tag );
 
@@ -197,23 +200,23 @@ public:
 
 	void		GetDownsize( int &scaled_width, int &scaled_height ) const;
 	void		MakeDefault();	// fill with a grid pattern
-	void		SetImageFilterAndRepeat() const;
 	bool		ShouldImageBePartialCached();
 	void		WritePrecompressedImage();
 	bool		CheckPrecompressedImage( bool fullLoad );
 	void		UploadPrecompressedImage( byte *data, int len );
 	void		ActuallyLoadImage( bool checkForPrecompressed, bool fromBackEnd );
 	void		StartBackgroundImageLoad();
-	int			BitsForInternalFormat( int internalFormat ) const;
-	void		UploadCompressedNormalMap( int width, int height, const byte *rgba, int mipLevel );
-	GLenum		SelectInternalFormat( const byte **dataPtrs, int numDataPtrs, int width, int height,
-									 textureDepth_t minimumDepth, bool *monochromeResult ) const;
+	int			BitsForInternalFormat( FglFormat internalFormat ) const;
 	void		ImageProgramStringToCompressedFileName( const char *imageProg, char *fileName ) const;
 	int			NumLevelsForImageSize( int width, int height ) const;
 
 	// data commonly accessed is grouped here
-	static const int TEXTURE_NOT_LOADED = -1;
-	GLuint				texnum;					// gl texture binding, will be TEXTURE_NOT_LOADED if not loaded
+	FglImage			m_image;
+	FglImageView		m_imageView;
+	FglDeviceMemory		m_imageMemory;
+
+	FglSampler			m_sampler;
+
 	textureType_t		type;
 	int					frameUsed;				// for texture usage in frame statistics
 	int					bindCount;				// incremented each bind
@@ -234,11 +237,11 @@ public:
 	textureDepth_t		depth;
 	cubeFiles_t			cubeFiles;				// determines the naming and flipping conventions for the six images
 
+	bool				scratchImage;
 	bool				referencedOutsideLevelLoad;
 	bool				levelLoadReferenced;	// for determining if it needs to be purged
 	bool				precompressedFile;		// true when it was loaded from a .d3t file
 	bool				defaulted;				// true if the default image was generated because a file couldn't be loaded
-	bool				isMonochrome;			// so the NV20 path can use a reduced pass count
 	ID_TIME_T				timestamp;				// the most recent of all images used in creation, for reloadImages command
 
 	int					imageHash;				// for identical-image checking
@@ -247,7 +250,7 @@ public:
 
 	// data for listImages
 	int					uploadWidth, uploadHeight, uploadDepth;	// after power of two, downsample, and MAX_TEXTURE_SIZE
-	int					internalFormat;
+	FglFormat			internalFormat;
 
 	idImage 			*cacheUsagePrev, *cacheUsageNext;	// for dynamic cache purging of old images
 
@@ -257,7 +260,10 @@ public:
 };
 
 ID_INLINE idImage::idImage() {
-	texnum = TEXTURE_NOT_LOADED;
+	m_image = FGL_NULL_HANDLE;
+	m_imageView = FGL_NULL_HANDLE;
+	m_imageMemory = FGL_NULL_HANDLE;
+	m_sampler = FGL_NULL_HANDLE;
 	partialImage = NULL;
 	type = TT_DISABLED;
 	isPartialImage = false;
@@ -274,6 +280,7 @@ ID_INLINE idImage::idImage() {
 	repeat = TR_REPEAT;
 	depth = TD_DEFAULT;
 	cubeFiles = CF_2D;
+	scratchImage = false;
 	referencedOutsideLevelLoad = false;
 	levelLoadReferenced = false;
 	precompressedFile = false;
@@ -281,10 +288,9 @@ ID_INLINE idImage::idImage() {
 	timestamp = 0;
 	bindCount = 0;
 	uploadWidth = uploadHeight = uploadDepth = 0;
-	internalFormat = 0;
+	internalFormat = FGL_FORMAT_R8G8B8A8_UNORM;
 	cacheUsagePrev = cacheUsageNext = NULL;
 	hashNext = NULL;
-	isMonochrome = false;
 	refCount = 0;
 }
 
@@ -311,6 +317,8 @@ public:
 	idImage *			ImageFromFile( const char *name,
 							 textureFilter_t filter, bool allowDownSize,
 							 textureRepeat_t repeat, textureDepth_t depth, cubeFiles_t cubeMap = CF_2D );
+
+	idImage *			ScratchImage(const char *name, int width, int height, FglFormat format);
 
 	// look for a loaded image, whatever the parameters
 	idImage *			GetImage( const char *name ) const;
@@ -414,7 +422,7 @@ public:
 	//--------------------------------------------------------
 	
 	idImage *			AllocImage( const char *name );
-	void				SetNormalPalette();
+	//void				SetNormalPalette();
 	void				ChangeTextureFilter();
 
 	idList<idImage*>	images;
@@ -427,8 +435,8 @@ public:
 	byte				compressedPalette[768];		// the palette that normal maps use
 
 	// default filter modes for images
-	GLenum				textureMinFilter;
-	GLenum				textureMaxFilter;
+	FglFilter			textureMinFilter;
+	FglFilter			textureMaxFilter;
 	float				textureAnisotropy;
 	float				textureLODBias;
 

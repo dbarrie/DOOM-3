@@ -151,7 +151,7 @@ return;
 #endif
 
 	// we can't do bump mapping with standard calls, so skip it
-	if ( glConfig.envDot3Available && glConfig.cubeMapAvailable ) {
+	{
 		//
 		// draw the bump map result onto the alpha channel
 		//

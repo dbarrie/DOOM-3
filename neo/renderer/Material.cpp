@@ -30,6 +30,7 @@ If you have questions concerning this license or the applicable additional terms
 #pragma hdrstop
 
 #include "tr_local.h"
+#include "RenderProgs.h"
 
 /*
 
@@ -1105,6 +1106,7 @@ void idMaterial::ParseStage( idLexer &src, const textureRepeat_t trpDefault ) {
 	imageName[0] = 0;
 
 	memset( &newStage, 0, sizeof( newStage ) );
+	newStage.shaderProgram = -1;
 
 	ss = &pd->parseStages[numStages];
 	ts = &ss->texture;
@@ -1489,23 +1491,24 @@ void idMaterial::ParseStage( idLexer &src, const textureRepeat_t trpDefault ) {
 		}
 		if ( !token.Icmp( "program" ) ) {
 			if ( src.ReadTokenOnLine( &token ) ) {
-				newStage.vertexProgram = R_FindARBProgram( GL_VERTEX_PROGRAM_ARB, token.c_str() );
-				newStage.fragmentProgram = R_FindARBProgram( GL_FRAGMENT_PROGRAM_ARB, token.c_str() );
+				newStage.vertexProgram = renderProgManager.FindShader(token.c_str(), SHADER_STAGE_VERTEX);
+				newStage.fragmentProgram = renderProgManager.FindShader(token.c_str(), SHADER_STAGE_FRAGMENT);
 			}
 			continue;
 		}
 		if ( !token.Icmp( "fragmentProgram" ) ) {
 			if ( src.ReadTokenOnLine( &token ) ) {
-				newStage.fragmentProgram = R_FindARBProgram( GL_FRAGMENT_PROGRAM_ARB, token.c_str() );
+				newStage.fragmentProgram = renderProgManager.FindShader(token.c_str(), SHADER_STAGE_FRAGMENT);
 			}
 			continue;
 		}
 		if ( !token.Icmp( "vertexProgram" ) ) {
 			if ( src.ReadTokenOnLine( &token ) ) {
-				newStage.vertexProgram = R_FindARBProgram( GL_VERTEX_PROGRAM_ARB, token.c_str() );
+				newStage.vertexProgram = renderProgManager.FindShader(token.c_str(), SHADER_STAGE_VERTEX);
 			}
 			continue;
 		}
+		/*
 		if ( !token.Icmp( "megaTexture" ) ) {
 			if ( src.ReadTokenOnLine( &token ) ) {
 				newStage.megaTexture = new idMegaTexture;
@@ -1519,6 +1522,7 @@ void idMaterial::ParseStage( idLexer &src, const textureRepeat_t trpDefault ) {
 				continue;
 			}
 		}
+		*/
 
 
 		if ( !token.Icmp( "vertexParm" ) ) {
@@ -1540,6 +1544,7 @@ void idMaterial::ParseStage( idLexer &src, const textureRepeat_t trpDefault ) {
 
 	// if we are using newStage, allocate a copy of it
 	if ( newStage.fragmentProgram || newStage.vertexProgram ) {
+		newStage.shaderProgram = renderProgManager.FindProgram(GetName(), newStage.vertexProgram, newStage.fragmentProgram);
 		ss->newStage = (newShaderStage_t *)Mem_Alloc( sizeof( newStage ) );
 		*(ss->newStage) = newStage;
 	}
@@ -1710,7 +1715,7 @@ void idMaterial::AddImplicitStages( const textureRepeat_t trpDefault /* = TR_REP
 
 	if ( !hasBump ) {
 		idStr::snPrintf( buffer, sizeof( buffer ), "blend bumpmap\nmap _flat\n}\n" );
-		newSrc.LoadMemory( buffer, strlen(buffer), "bumpmap" );
+		newSrc.LoadMemory( buffer, (int)strlen(buffer), "bumpmap" );
 		newSrc.SetFlags( LEXFL_NOFATALERRORS | LEXFL_NOSTRINGCONCAT | LEXFL_NOSTRINGESCAPECHARS | LEXFL_ALLOWPATHNAMES );
 		ParseStage( newSrc, trpDefault );
 		newSrc.FreeSource();
@@ -1718,7 +1723,7 @@ void idMaterial::AddImplicitStages( const textureRepeat_t trpDefault /* = TR_REP
 
 	if ( !hasDiffuse && !hasSpecular && !hasReflection ) {
 		idStr::snPrintf( buffer, sizeof( buffer ), "blend diffusemap\nmap _white\n}\n" );
-		newSrc.LoadMemory( buffer, strlen(buffer), "diffusemap" );
+		newSrc.LoadMemory( buffer, (int)strlen(buffer), "diffusemap" );
 		newSrc.SetFlags( LEXFL_NOFATALERRORS | LEXFL_NOSTRINGCONCAT | LEXFL_NOSTRINGESCAPECHARS | LEXFL_ALLOWPATHNAMES );
 		ParseStage( newSrc, trpDefault );
 		newSrc.FreeSource();
@@ -2009,7 +2014,7 @@ void idMaterial::ParseMaterial( idLexer &src ) {
 		else if ( !token.Icmp( "diffusemap" ) ) {
 			str = R_ParsePastImageProgram( src );
 			idStr::snPrintf( buffer, sizeof( buffer ), "blend diffusemap\nmap %s\n}\n", str );
-			newSrc.LoadMemory( buffer, strlen(buffer), "diffusemap" );
+			newSrc.LoadMemory( buffer, (int)strlen(buffer), "diffusemap" );
 			newSrc.SetFlags( LEXFL_NOFATALERRORS | LEXFL_NOSTRINGCONCAT | LEXFL_NOSTRINGESCAPECHARS | LEXFL_ALLOWPATHNAMES );
 			ParseStage( newSrc, trpDefault );
 			newSrc.FreeSource();
@@ -2019,7 +2024,7 @@ void idMaterial::ParseMaterial( idLexer &src ) {
 		else if ( !token.Icmp( "specularmap" ) ) {
 			str = R_ParsePastImageProgram( src );
 			idStr::snPrintf( buffer, sizeof( buffer ), "blend specularmap\nmap %s\n}\n", str );
-			newSrc.LoadMemory( buffer, strlen(buffer), "specularmap" );
+			newSrc.LoadMemory( buffer, (int)strlen(buffer), "specularmap" );
 			newSrc.SetFlags( LEXFL_NOFATALERRORS | LEXFL_NOSTRINGCONCAT | LEXFL_NOSTRINGESCAPECHARS | LEXFL_ALLOWPATHNAMES );
 			ParseStage( newSrc, trpDefault );
 			newSrc.FreeSource();
@@ -2029,7 +2034,7 @@ void idMaterial::ParseMaterial( idLexer &src ) {
 		else if ( !token.Icmp( "bumpmap" ) ) {
 			str = R_ParsePastImageProgram( src );
 			idStr::snPrintf( buffer, sizeof( buffer ), "blend bumpmap\nmap %s\n}\n", str );
-			newSrc.LoadMemory( buffer, strlen(buffer), "bumpmap" );
+			newSrc.LoadMemory( buffer, (int)strlen(buffer), "bumpmap" );
 			newSrc.SetFlags( LEXFL_NOFATALERRORS | LEXFL_NOSTRINGCONCAT | LEXFL_NOSTRINGESCAPECHARS | LEXFL_ALLOWPATHNAMES );
 			ParseStage( newSrc, trpDefault );
 			newSrc.FreeSource();

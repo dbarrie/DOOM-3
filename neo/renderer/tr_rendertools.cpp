@@ -483,6 +483,8 @@ based on how many lights are effecting it
 =================
 */
 void RB_ShowLightCount( void ) {
+	assert(false);
+#if 0
 	int		i;
 	const drawSurf_t	*surf;
 	const viewLight_t	*vLight;
@@ -531,6 +533,7 @@ void RB_ShowLightCount( void ) {
 	if ( r_showLightCount.GetInteger() > 2 ) {
 		RB_CountStencilBuffer();
 	}
+#endif
 }
 
 
@@ -543,6 +546,8 @@ plane extends from, allowing you to see doubled edges
 =================
 */
 void RB_ShowSilhouette( void ) {
+	assert(false);
+#if 0
 	int		i;
 	const drawSurf_t	*surf;
 	const viewLight_t	*vLight;
@@ -614,6 +619,7 @@ void RB_ShowSilhouette( void ) {
 	GL_State( GLS_DEFAULT );
 	qglColor3f( 1,1,1 );
 	GL_Cull( CT_FRONT_SIDED );
+#endif
 }
 
 
@@ -627,6 +633,8 @@ and count up the total fill usage
 =================
 */
 static void RB_ShowShadowCount( void ) {
+	assert(false);
+#if 0
 	int		i;
 	const drawSurf_t	*surf;
 	const viewLight_t	*vLight;
@@ -697,6 +705,7 @@ static void RB_ShowShadowCount( void ) {
 	}
 
 	GL_Cull( CT_FRONT_SIDED );
+#endif
 }
 
 
@@ -2261,6 +2270,8 @@ Display a single image over most of the screen
 ================
 */
 void RB_TestImage( void ) {
+	assert(false);
+#if 0
 	idImage	*image;
 	int		max;
 	float	w, h;
@@ -2319,6 +2330,7 @@ void RB_TestImage( void ) {
 
 	qglPopMatrix();
 	qglMatrixMode( GL_MODELVIEW );
+#endif
 }
 
 /*

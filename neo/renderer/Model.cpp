@@ -113,7 +113,7 @@ int idRenderModelStatic::Memory() const {
 
 	totalBytes += sizeof( *this );
 	totalBytes += name.DynamicMemoryUsed();
-	totalBytes += surfaces.MemoryUsed();
+	totalBytes += (int)surfaces.MemoryUsed();
 
 	if ( shadowHull ) {
 		totalBytes += R_TriSurfMemory( shadowHull );
@@ -2128,6 +2128,8 @@ We are about to restart the vertex cache, so dump everything
 ==============
 */
 void idRenderModelStatic::FreeVertexCache( void ) {
+	assert(false);
+#if 0
 	for ( int j = 0 ; j < surfaces.Num() ; j++ ) {
 		srfTriangles_t *tri = surfaces[j].geometry;
 		if ( !tri ) {
@@ -2143,6 +2145,7 @@ void idRenderModelStatic::FreeVertexCache( void ) {
 			tri->shadowCache = NULL;
 		}
 	}
+#endif
 }
 
 /*

@@ -76,7 +76,8 @@ RB_DrawElementsWithCounters
 ================
 */
 void RB_DrawElementsWithCounters( const srfTriangles_t *tri ) {
-
+	assert(false);
+#if 0
 	backEnd.pc.c_drawElements++;
 	backEnd.pc.c_drawIndexes += tri->numIndexes;
 	backEnd.pc.c_drawVertexes += tri->numVerts;
@@ -105,6 +106,7 @@ void RB_DrawElementsWithCounters( const srfTriangles_t *tri ) {
 						GL_INDEX_TYPE,
 						tri->indexes );
 	}
+#endif
 }
 
 /*
@@ -115,6 +117,8 @@ May not use all the indexes in the surface if caps are skipped
 ================
 */
 void RB_DrawShadowElementsWithCounters( const srfTriangles_t *tri, int numIndexes ) {
+	assert(false);
+#if 0
 	backEnd.pc.c_shadowElements++;
 	backEnd.pc.c_shadowIndexes += numIndexes;
 	backEnd.pc.c_shadowVertexes += tri->numVerts;
@@ -134,6 +138,7 @@ void RB_DrawShadowElementsWithCounters( const srfTriangles_t *tri, int numIndexe
 						GL_INDEX_TYPE,
 						tri->indexes );
 	}
+#endif
 }
 
 
@@ -145,7 +150,9 @@ Sets texcoord and vertex pointers
 ===============
 */
 void RB_RenderTriangleSurface( const srfTriangles_t *tri ) {
-	if ( !tri->ambientCache ) {
+	assert(false);
+#if 0
+	if ( !vertexCache.CacheIsCurrent(tri->ambientCache) ) {
 		RB_DrawElementsImmediate( tri );
 		return;
 	}
@@ -156,6 +163,7 @@ void RB_RenderTriangleSurface( const srfTriangles_t *tri ) {
 	qglTexCoordPointer( 2, GL_FLOAT, sizeof( idDrawVert ), ac->st.ToFloatPtr() );
 
 	RB_DrawElementsWithCounters( tri );
+#endif
 }
 
 /*
@@ -376,6 +384,8 @@ Handles generating a cinematic frame if needed
 ======================
 */
 void RB_BindVariableStageImage( const textureStage_t *texture, const float *shaderRegisters ) {
+	assert(false);
+#if 0
 	if ( texture->cinematic ) {
 		cinData_t	cin;
 
@@ -400,6 +410,7 @@ void RB_BindVariableStageImage( const textureStage_t *texture, const float *shad
 			texture->image->Bind();
 		}
 	}
+#endif
 }
 
 /*
@@ -408,6 +419,8 @@ RB_BindStageTexture
 ======================
 */
 void RB_BindStageTexture( const float *shaderRegisters, const textureStage_t *texture, const drawSurf_t *surf ) {
+	assert(false);
+#if 0
 	// image
 	RB_BindVariableStageImage( texture, shaderRegisters );
 
@@ -441,6 +454,7 @@ void RB_BindStageTexture( const float *shaderRegisters, const textureStage_t *te
 	if ( texture->hasMatrix ) {
 		RB_LoadShaderTextureMatrix( shaderRegisters, texture );
 	}
+#endif
 }
 
 /*
@@ -449,6 +463,8 @@ RB_FinishStageTexture
 ======================
 */
 void RB_FinishStageTexture( const textureStage_t *texture, const drawSurf_t *surf ) {
+	assert(false);
+#if 0
 	if ( texture->texgen == TG_DIFFUSE_CUBE || texture->texgen == TG_SKYBOX_CUBE 
 		|| texture->texgen == TG_WOBBLESKY_CUBE ) {
 		qglTexCoordPointer( 2, GL_FLOAT, sizeof( idDrawVert ), 
@@ -474,6 +490,7 @@ void RB_FinishStageTexture( const textureStage_t *texture, const drawSurf_t *sur
 		qglLoadIdentity();
 		qglMatrixMode( GL_MODELVIEW );
 	}
+#endif
 }
 
 
@@ -553,6 +570,7 @@ to actually render the visible surfaces for this view
 =================
 */
 void RB_BeginDrawingView (void) {
+
 	// set the modelview matrix for the viewer
 	qglMatrixMode(GL_PROJECTION);
 	qglLoadMatrixf( backEnd.viewDef->projectionMatrix );
@@ -872,7 +890,7 @@ void RB_DrawView( const void *data ) {
 	// which should factor out the API cost, under the assumption
 	// that all gl calls just return if the context isn't valid
 	if ( r_skipRenderContext.GetBool() && backEnd.viewDef->viewEntitys ) {
-		GLimp_DeactivateContext();
+		//GLimp_DeactivateContext();
 	}
 
 	backEnd.pc.c_surfaces += backEnd.viewDef->numDrawSurfs;
@@ -884,7 +902,7 @@ void RB_DrawView( const void *data ) {
 
 	// restore the context for 2D drawing if we were stubbing it out
 	if ( r_skipRenderContext.GetBool() && backEnd.viewDef->viewEntitys ) {
-		GLimp_ActivateContext();
-		RB_SetDefaultGLState();
+		//GLimp_ActivateContext();
+		//RB_SetDefaultGLState();
 	}
 }

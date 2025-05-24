@@ -194,6 +194,7 @@ typedef struct {
 	int					vertexParms[MAX_VERTEX_PARMS][4];	// evaluated register indexes
 
 	int					fragmentProgram;
+	int					shaderProgram;
 	int					numFragmentProgramImages;
 	idImage *			fragmentProgramImages[MAX_FRAGMENT_IMAGES];
 
@@ -203,7 +204,7 @@ typedef struct {
 typedef struct {
 	int					conditionRegister;	// if registers[conditionRegister] == 0, skip stage
 	stageLighting_t		lighting;			// determines which passes interact with lights
-	int					drawStateBits;
+	uint64_t			drawStateBits;
 	colorStage_t		color;
 	bool				hasAlphaTest;
 	int					alphaTestRegister;
