@@ -1,1 +1,4 @@
 build
+.vs
+base/*.pk4
+base/savegames
