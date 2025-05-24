@@ -78,42 +78,41 @@ BOOL CMapInfo::OnInitDialog()
 {
 	CDialog::OnInitDialog();
 
-  m_nTotalBrushes = 0;
-  m_nTotalEntities = 0;
-  m_nNet = 0;
+	m_nTotalBrushes = 0;
+	m_nTotalEntities = 0;
+	m_nNet = 0;
 	for (brush_t* pBrush=active_brushes.next ; pBrush != &active_brushes ; pBrush=pBrush->next)
-  {
-    m_nTotalBrushes++;
-    if (pBrush->owner == world_entity)
-      m_nNet++;
-  }
+	{
+		m_nTotalBrushes++;
+		if (pBrush->owner == world_entity)
+			m_nNet++;
+	}
 
+	CMapStringToPtr mapEntity;
 
-  CMapStringToPtr mapEntity;
-
-  int nValue = 0;
+	intptr_t nValue = 0;
 	for (entity_t* pEntity=entities.next ; pEntity != &entities ; pEntity=pEntity->next)
 	{
-    m_nTotalEntities++;
-    nValue = 0;
-    mapEntity.Lookup(pEntity->eclass->name, reinterpret_cast<void*&>(nValue));
-    nValue++ ;
-    mapEntity.SetAt(pEntity->eclass->name, reinterpret_cast<void*>(nValue));
-  }
+		m_nTotalEntities++;
+		nValue = 0;
+		mapEntity.Lookup(pEntity->eclass->name, reinterpret_cast<void*&>(nValue));
+		nValue++ ;
+		mapEntity.SetAt(pEntity->eclass->name, reinterpret_cast<void*>(nValue));
+	}
 
-  m_lstEntity.ResetContent();
-  m_lstEntity.SetTabStops(96);
-  CString strKey;
-  POSITION pos = mapEntity.GetStartPosition();
-  while (pos)
-  {
-    mapEntity.GetNextAssoc(pos, strKey, reinterpret_cast<void*&>(nValue));
-    CString strList;
-    strList.Format("%s\t%i", strKey, nValue);
-    m_lstEntity.AddString(strList);
-  }
+	m_lstEntity.ResetContent();
+	m_lstEntity.SetTabStops(96);
+	CString strKey;
+	POSITION pos = mapEntity.GetStartPosition();
+	while (pos)
+	{
+		mapEntity.GetNextAssoc(pos, strKey, reinterpret_cast<void*&>(nValue));
+		CString strList;
+		strList.Format("%s\t%i", strKey, nValue);
+		m_lstEntity.AddString(strList);
+	}
 
-  UpdateData(FALSE);
+	UpdateData(FALSE);
 	
 	return TRUE;  // return TRUE unless you set the focus to a control
 	              // EXCEPTION: OCX Property Pages should return FALSE

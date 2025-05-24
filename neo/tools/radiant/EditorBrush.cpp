@@ -60,7 +60,7 @@ void DrawRenderModel( idRenderModel *model, idVec3 &origin, idMat3 &axis, bool c
 		int nDrawMode = g_pParentWnd->GetCamera()->Camera().draw_mode;
 
 		if ( cameraView && (nDrawMode == cd_texture || nDrawMode == cd_light) ) {
-			material->GetEditorImage()->Bind();
+			material->GetEditorImage()->Bind(0);
 		}
 
 		qglBegin( GL_TRIANGLES );
@@ -645,10 +645,10 @@ void DrawBrushEntityName(brush_t *b) {
 
 	if (g_qeglobals.d_savedinfo.show_names && scale >= 1.0f) {
 		name = ValueForKey(b->owner, "name");
-		int nameLen = strlen(name);
+		int nameLen = (int)strlen(name);
 		if ( nameLen == 0 ) {
 			name = ValueForKey(b->owner, "classname");
-			nameLen = strlen(name);
+			nameLen = (int)strlen(name);
 		}
 		if ( nameLen > 0 ) {
 			idVec3 origin = b->owner->origin;
@@ -2339,7 +2339,7 @@ int Brush_MemorySize( brush_t *b ) {
 		size += Face_MemorySize(f);
 	}
 
-	size += sizeof( brush_t ) + b->epairs.Size();
+	size += int(sizeof( brush_t ) + b->epairs.Size());
 	return size;
 }
 
@@ -3095,7 +3095,7 @@ void Brush_UpdateLightPoints(brush_t *b, const idVec3 &offset) {
 	if (str && strlen(str) > 0) {
 		const idMaterial	*q = Texture_LoadLight(str);
 		if (q) {
-			b->lightTexture = q->GetEditorImage()->texnum;
+			b->lightTexture = 0;// q->GetEditorImage()->texnum;
 		}
 	}
 
@@ -4488,7 +4488,7 @@ void Brush_Draw(brush_t *b, bool bSelected) {
 		if ( (nDrawMode == cd_texture || nDrawMode == cd_light) && face->d_texture != prev && !b->forceWireFrame ) {
 			// set the texture for this face
 			prev = face->d_texture;
-			face->d_texture->GetEditorImage()->Bind();
+			face->d_texture->GetEditorImage()->Bind(0);
 		}
 
 		if (model) {

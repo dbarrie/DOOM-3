@@ -212,7 +212,7 @@ eclass_t *EClass_InitFromDict( const idDict *d, const char *name ) {
 		kv = d->MatchPrefix(EvarPrefixes[i].prefix);
 		while (kv) {
 			evar_t ev;
-			kv->GetKey().Right( kv->GetKey().Length() - strlen(EvarPrefixes[i].prefix), ev.name );
+			kv->GetKey().Right( kv->GetKey().Length() - (int)strlen(EvarPrefixes[i].prefix), ev.name );
 			ev.desc = kv->GetValue();
 			ev.type = EvarPrefixes[i].type;
 			e->vars.Append(ev);

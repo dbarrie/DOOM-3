@@ -157,20 +157,20 @@ HTREEITEM CPathTreeCtrl::AddPathToTree( const idStr &pathName, const int id, idP
 	lastSlash = pathName.Last( '/' );
 
 	while( stack.Num() > 1 ) {
-		if ( pathName.Icmpn( stack.TopName(), stack.TopNameLength() ) == 0 ) {
+		if ( pathName.Icmpn( stack.TopName(), (int)stack.TopNameLength() ) == 0 ) {
 			break;
 		}
 		stack.Pop();
 	}
 
 	while( lastSlash > stack.TopNameLength() ) {
-		pathName.Mid( stack.TopNameLength(), pathName.Length(), tmpPath );
+		pathName.Mid((int)stack.TopNameLength(), pathName.Length(), tmpPath );
 		tmpPath.Left( tmpPath.Find( '/' ), itemName );
 		item = InsertItem( itemName, stack.TopItem() );
 		stack.Push( item, itemName );
 	}
 
-	pathName.Mid( stack.TopNameLength(), pathName.Length(), itemName );
+	pathName.Mid((int)stack.TopNameLength(), pathName.Length(), itemName );
 	item = InsertItem( itemName, stack.TopItem() );
 	SetItemData( item, id );
 

@@ -305,7 +305,7 @@ void CNewTexWnd::OnPaint() {
 				// Draw the texture
 				float	fScale = (g_PrefsDlg.m_bHiColorTextures == TRUE) ? ((float)g_PrefsDlg.m_nTextureScale / 100) : 1.0;
 
-				mat->GetEditorImage()->Bind();
+				mat->GetEditorImage()->Bind(0);
 				QE_CheckOpenGLForErrors();
 				qglColor3f(1, 1, 1);
 				qglBegin(GL_QUADS);
@@ -351,7 +351,7 @@ void CNewTexWnd::OnPaint() {
 				else {
 					name++;
 				}
-				qglCallLists(strlen(name), GL_UNSIGNED_BYTE, name);
+				qglCallLists((int)strlen(name), GL_UNSIGNED_BYTE, name);
 				//qglCallLists(va("%s -- %d, %d" strlen(name), GL_UNSIGNED_BYTE, name);
 			} 
 		}

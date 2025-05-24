@@ -315,9 +315,9 @@ void CSyntaxRichEditCtrl::SetKeyWords( const keyWord_t kws[] ) {
 	keyWordHash.Clear( 1024, 1024 );
 	for ( i = 0; i < numKeyWords; i++ ) {
 		if ( caseSensitive ) {
-			hash = idStr::Hash( keyWords[i].keyWord, keyWordLengths[i] );
+			hash = idStr::Hash( keyWords[i].keyWord, (int)keyWordLengths[i] );
 		} else {
-			hash = idStr::IHash( keyWords[i].keyWord, keyWordLengths[i] );
+			hash = idStr::IHash( keyWords[i].keyWord, (int)keyWordLengths[i] );
 		}
 		keyWordHash.Add( hash, i );
 	}
@@ -1120,7 +1120,7 @@ void CSyntaxRichEditCtrl::ToolTipShow( int charIndex, const char *string ) {
 	funcParmToolTipStart = charIndex;
 	funcParmToolTip.SetWindowText( string );
 	p1 = funcParmToolTip.PosFromChar( 0 );
-	p2 = funcParmToolTip.PosFromChar( strlen( string ) - 1 );
+	p2 = funcParmToolTip.PosFromChar((int)strlen( string ) - 1 );
 	point = PosFromChar( charIndex );
 	GetClientRect( rect );
 	if ( point.y < rect.bottom - FUNCPARMTOOLTIP_OFFSET - FUNCPARMTOOLTIP_HEIGHT ) {

@@ -1000,7 +1000,7 @@ void CMainFrame::ShowMenuItemKeyBindings(CMenu *pMenu) {
 		MenuItemInfo.fMask = MIIM_TYPE;
 		MenuItemInfo.fType = MFT_STRING;
 		MenuItemInfo.dwTypeData = key;
-		MenuItemInfo.cch = strlen(key);
+		MenuItemInfo.cch = (int)strlen(key);
 		SetMenuItemInfo(pMenu->m_hMenu, g_Commands[i].m_nCommand, FALSE, &MenuItemInfo);
 	}
 }
@@ -1193,7 +1193,7 @@ void FindReplace(CString& strContents, const char* pTag, const char* pValue) {
 	if (strcmp(pTag, pValue) == 0)
 		return;
 	for (int nPos = strContents.Find(pTag); nPos >= 0; nPos = strContents.Find(pTag)) {
-		int nRightLen = strContents.GetLength() - strlen(pTag) - nPos;
+		int nRightLen = strContents.GetLength() - (int)strlen(pTag) - nPos;
 		CString strLeft = strContents.Left(nPos);
 		CString strRight = strContents.Right(nRightLen);
 		strLeft += pValue;
@@ -2150,7 +2150,7 @@ void RunBsp (const char *command) {
 		in = name;
 	}
 
-	if (idStr::Icmpn(command, "bspext", strlen("runbsp")) == 0) {
+	if (idStr::Icmpn(command, "bspext", (int)strlen("runbsp")) == 0) {
 		PROCESS_INFORMATION ProcessInformation;
 		STARTUPINFO	startupinfo;
 		char buff[2048];

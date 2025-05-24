@@ -145,7 +145,7 @@ void CPreviewDlg::AddCommentedItems() {
 	path = (currentMode == GUIS) ? "guis/guis.commented" : "models/models.commented";
 	idParser src( LEXFL_NOFATALERRORS | LEXFL_NOSTRINGCONCAT | LEXFL_ALLOWMULTICHARLITERALS | LEXFL_ALLOWBACKSLASHSTRINGCONCAT );
 	if (fileSystem->ReadFile(path, (void**)&buffer, NULL) && buffer) {
-		src.LoadMemory(buffer, strlen(buffer), path);
+		src.LoadMemory(buffer, (int)strlen(buffer), path);
 		if (src.IsLoaded()) {
 			idToken token, tok1, tok2, tok3;
 			while( src.ReadToken( &token ) ) {

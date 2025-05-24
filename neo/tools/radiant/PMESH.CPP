@@ -2527,7 +2527,7 @@ void Patch_DrawCam( patchMesh_t *pm,bool selected ) {
 		qglPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
 		if ( nDrawMode == cd_texture || nDrawMode == cd_light ) {
-			pm->d_texture->GetEditorImage()->Bind();
+			pm->d_texture->GetEditorImage()->Bind(0);
 		}
 
 		if ( !selected && pm->d_texture->GetEditorAlpha() != 1.0f ) {

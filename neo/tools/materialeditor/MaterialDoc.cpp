@@ -82,7 +82,7 @@ void MaterialDoc::SetRenderMaterial(idMaterial* material, bool parseMaterial, bo
 	material->GetText( declText );
 
 	renderMaterial->GetText(declText);
-	src.LoadMemory(declText, strlen(declText), "Material");
+	src.LoadMemory(declText, (int)strlen(declText), "Material");
 
 	ParseMaterial(&src);
 }
@@ -662,7 +662,7 @@ void MaterialDoc::ParseMaterialText(const char* source) {
 	src.SkipUntilString("{");*/
 
 	//Now let the material parse the text
-	renderMaterial->Parse(source, strlen(source));
+	renderMaterial->Parse(source, (int)strlen(source));
 }
 
 /**
