@@ -131,7 +131,7 @@ int idBase64::Decode( byte *to ) const {
 			w = 0;
 		}
 	}
-	return n;
+	return (int)n;
 }
 
 /*

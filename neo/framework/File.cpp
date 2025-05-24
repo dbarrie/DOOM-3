@@ -546,7 +546,7 @@ int idFile::WriteBool( const bool value ) {
 int idFile::WriteString( const char *value ) {
 	int len;
 	
-	len = strlen( value );
+	len = (int)strlen( value );
 	WriteInt( len );
     return Write( value, len );
 }
@@ -1065,7 +1065,7 @@ int idFile_Permanent::Read( void *buffer, int len ) {
 	tries = 0;
 	while( remaining ) {
 		block = remaining;
-		read = fread( buf, 1, block, o );
+		read = (int)fread( buf, 1, block, o );
 		if ( read == 0 ) {
 			// we might have been trying to read from a CD, which
 			// sometimes returns a 0 read on windows
@@ -1117,7 +1117,7 @@ int idFile_Permanent::Write( const void *buffer, int len ) {
 	tries = 0;
 	while( remaining ) {
 		block = remaining;
-		written = fwrite( buf, 1, block, o );
+		written = (int)fwrite( buf, 1, block, o );
 		if ( written == 0 ) {
 			if ( !tries ) {
 				tries = 1;

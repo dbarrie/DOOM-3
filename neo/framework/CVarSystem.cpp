@@ -138,7 +138,7 @@ idInternalCVar::CopyValueStrings
 ============
 */
 const char **idInternalCVar::CopyValueStrings( const char **strings ) {
-	int i, totalLength;
+	size_t i, totalLength;
 	const char **ptr;
 	char *str;
 

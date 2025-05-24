@@ -76,7 +76,7 @@ const char *idCmdArgs::Args(  int start, int end, bool escapeArgs ) const {
 				if ( *p == '\\' ) {
 					strcat( cmd_args, "\\\\" );
 				} else {
-					int l = strlen( cmd_args );
+					int l = (int)strlen( cmd_args );
 					cmd_args[ l ] = *p;
 					cmd_args[ l+1 ] = '\0';
 				}
@@ -115,7 +115,7 @@ void idCmdArgs::TokenizeString( const char *text, bool keepAsStrings ) {
 		return;
 	}
 
-	lex.LoadMemory( text, strlen( text ), "idCmdSystemLocal::TokenizeString" );
+	lex.LoadMemory( text, (int)strlen( text ), "idCmdSystemLocal::TokenizeString" );
 	lex.SetFlags( LEXFL_NOERRORS
 				| LEXFL_NOWARNINGS
 				| LEXFL_NOSTRINGCONCAT
@@ -180,7 +180,7 @@ void idCmdArgs::AppendArg( const char *text ) {
 		argv[ 0 ] = tokenized;
 		idStr::Copynz( tokenized, text, sizeof( tokenized ) );
 	} else {
-		argv[ argc ] = argv[ argc-1 ] + strlen( argv[ argc-1 ] ) + 1;
+		argv[ argc ] = argv[ argc-1 ] + (int)strlen( argv[ argc-1 ] ) + 1;
 		idStr::Copynz( argv[ argc ], text, sizeof( tokenized ) - ( argv[ argc ] - tokenized ) );
 		argc++;
 	}

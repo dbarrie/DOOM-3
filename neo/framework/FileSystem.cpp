@@ -1498,7 +1498,7 @@ int idFileSystemLocal::GetFileList( const char *relativePath, const idStrList &e
 	if ( !relativePath ) {
 		return 0;
 	}
-	pathLength = strlen( relativePath );
+	pathLength = (int)strlen( relativePath );
 	if ( pathLength ) {
 		pathLength++;	// for the trailing '/'
 	}
@@ -1506,7 +1506,7 @@ int idFileSystemLocal::GetFileList( const char *relativePath, const idStrList &e
 	// search through the path, one element at a time, adding to list
 	for( search = searchPaths; search != NULL; search = search->next ) {
 		if ( search->dir ) {
-			if(gamedir && strlen(gamedir)) {
+			if(gamedir && (int)strlen(gamedir)) {
 				if(search->dir->gamedir != gamedir) {
 					continue;
 				}
@@ -3000,7 +3000,7 @@ idFileSystemLocal::FileAllowedFromDir
 bool idFileSystemLocal::FileAllowedFromDir( const char *path ) {
 	unsigned int l;
 
-	l = strlen( path );
+	l = (int)strlen( path );
 
 	if ( !strcmp( path + l - 4, ".cfg" )		// for config files
 		|| !strcmp( path + l - 4, ".dat" )		// for journal files
@@ -3595,7 +3595,7 @@ size_t idFileSystemLocal::CurlWriteFunction( void *ptr, size_t size, size_t nmem
 		return size * nmemb;
 	}
 	#ifdef _WIN32
-		return _write( static_cast<idFile_Permanent*>(bgl->f)->GetFilePtr()->_file, ptr, size * nmemb );
+		return _write( _fileno(static_cast<idFile_Permanent*>(bgl->f)->GetFilePtr()), ptr, size * nmemb );
 	#else
 		return fwrite( ptr, size, nmemb, static_cast<idFile_Permanent*>(bgl->f)->GetFilePtr() );
 	#endif
@@ -3641,7 +3641,7 @@ dword BackgroundDownloadThread( void *parms ) {
 		if ( bgl->opcode == DLTYPE_FILE ) {
 			// use the low level read function, because fread may allocate memory
 			#if defined(WIN32)
-				_read( static_cast<idFile_Permanent*>(bgl->f)->GetFilePtr()->_file, bgl->file.buffer, bgl->file.length );
+				_read( _fileno(static_cast<idFile_Permanent*>(bgl->f)->GetFilePtr()), bgl->file.buffer, bgl->file.length );
 			#else
 				fread(  bgl->file.buffer, bgl->file.length, 1, static_cast<idFile_Permanent*>(bgl->f)->GetFilePtr() );
 			#endif

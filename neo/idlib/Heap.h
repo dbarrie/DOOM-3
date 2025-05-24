@@ -63,11 +63,11 @@ void		Mem_AllocDefragBlock( void );
 
 #ifndef ID_DEBUG_MEMORY
 
-void *		Mem_Alloc( const int size );
-void *		Mem_ClearedAlloc( const int size );
+void *		Mem_Alloc( const size_t size );
+void *		Mem_ClearedAlloc( const size_t size );
 void		Mem_Free( void *ptr );
 char *		Mem_CopyString( const char *in );
-void *		Mem_Alloc16( const int size );
+void *		Mem_Alloc16( const size_t size );
 void		Mem_Free16( void *ptr );
 
 #ifdef ID_REDIRECT_NEWDELETE
@@ -89,11 +89,11 @@ __inline void operator delete[]( void *p ) {
 
 #else /* ID_DEBUG_MEMORY */
 
-void *		Mem_Alloc( const int size, const char *fileName, const int lineNumber );
-void *		Mem_ClearedAlloc( const int size, const char *fileName, const int lineNumber );
+void *		Mem_Alloc( const size_t size, const char *fileName, const int lineNumber );
+void *		Mem_ClearedAlloc( const size_t size, const char *fileName, const int lineNumber );
 void		Mem_Free( void *ptr, const char *fileName, const int lineNumber );
 char *		Mem_CopyString( const char *in, const char *fileName, const int lineNumber );
-void *		Mem_Alloc16( const int size, const char *fileName, const int lineNumber );
+void *		Mem_Alloc16( const size_t size, const char *fileName, const int lineNumber );
 void		Mem_Free16( void *ptr, const char *fileName, const int lineNumber );
 
 #ifdef ID_REDIRECT_NEWDELETE
@@ -214,7 +214,7 @@ type *idBlockAlloc<type,blockSize>::Alloc( void ) {
 
 template<class type, int blockSize>
 void idBlockAlloc<type,blockSize>::Free( type *t ) {
-	element_t *element = (element_t *)( ( (unsigned char *) t ) - ( (int) &((element_t *)0)->t ) );
+	element_t *element = (element_t *)( ( (unsigned char *) t ) - ( (intptr_t) &((element_t *)0)->t ) );
 	element->next = free;
 	free = element;
 	active--;

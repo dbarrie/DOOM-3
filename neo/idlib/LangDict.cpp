@@ -80,7 +80,7 @@ bool idLangDict::Load( const char *fileName, bool clear /* _D3XP */ ) {
 		// let whoever called us deal with the failure (so sys_lang can be reset)
 		return false;
 	}
-	src.LoadMemory( buffer, strlen( buffer ), fileName );
+	src.LoadMemory( buffer, (int)strlen( buffer ), fileName );
 	if ( !src.IsLoaded() ) {
 		return false;
 	}
@@ -237,7 +237,7 @@ bool idLangDict::ExcludeString( const char *str ) const {
 		return true;
 	}
 
-	int c = strlen( str );
+	int c = (int)strlen( str );
 	if ( c <= 1 ) {
 		return true;
 	}
@@ -246,7 +246,7 @@ bool idLangDict::ExcludeString( const char *str ) const {
 		return true;
 	}
 
-	if ( idStr::Icmpn( str, "gui::", strlen( "gui::" ) ) == 0 ) {
+	if ( idStr::Icmpn( str, "gui::", (int)strlen( "gui::" ) ) == 0 ) {
 		return true;
 	}
 

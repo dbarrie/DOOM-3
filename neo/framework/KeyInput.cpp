@@ -707,7 +707,7 @@ void idKeyInput::PreliminaryKeyEvent( int keynum, bool down ) {
 		lastKeys[16 + ( lastKeyIndex & 15 )] = keynum;
 		lastKeyIndex = ( lastKeyIndex + 1 ) & 15;
 		for ( int i = 0; cheatCodes[i] != NULL; i++ ) {
-			int l = strlen( cheatCodes[i] );
+			size_t l = strlen( cheatCodes[i] );
 			assert( l <= 16 );
 			if ( idStr::Icmpn( lastKeys + 16 + ( lastKeyIndex & 15 ) - l, cheatCodes[i], l ) == 0 ) {
 				common->Printf( "your memory serves you well!\n" );

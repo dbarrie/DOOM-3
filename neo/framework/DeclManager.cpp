@@ -1389,7 +1389,7 @@ idDecl *idDeclManagerLocal::CreateNewDecl( declType_t type, const char *name, co
 	idStr defaultText = decl->self->DefaultDefinition();
 
 
-	int size = header.Length() + 1 + idStr::Length( canonicalName ) + 1 + defaultText.Length();
+	size_t size = header.Length() + 1 + idStr::Length( canonicalName ) + 1 + defaultText.Length();
 	char *declText = ( char * ) _alloca( size + 1 );
 
 	memcpy( declText, header, header.Length() );
@@ -1582,13 +1582,13 @@ idDeclManagerLocal::ListDecls_f
 ================
 */
 void idDeclManagerLocal::ListDecls_f( const idCmdArgs &args ) {
-	int		i, j;
-	int		totalDecls = 0;
-	int		totalText = 0;
-	int		totalStructs = 0;
+	size_t	i, j;
+	size_t	totalDecls = 0;
+	size_t	totalText = 0;
+	size_t	totalStructs = 0;
 
 	for ( i = 0; i < declManagerLocal.declTypes.Num(); i++ ) {
-		int size, num;
+		size_t size, num;
 
 		if ( declManagerLocal.declTypes[i] == NULL ) {
 			continue;

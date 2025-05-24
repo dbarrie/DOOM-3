@@ -2082,7 +2082,7 @@ void idAsyncClient::HandleDownloads( void ) {
 					byte		*buf;
 					int			remainlen;
 					int			readlen;
-					int			retlen;
+					size_t		retlen;
 					int			checksum;
 
 					common->Printf( "file downloaded\n" );

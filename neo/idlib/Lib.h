@@ -29,6 +29,21 @@ If you have questions concerning this license or the applicable additional terms
 #ifndef __LIB_H__
 #define __LIB_H__
 
+#include <stdio.h>
+#include <stdlib.h>
+#include <stdarg.h>
+#include <string.h>
+#include <assert.h>
+#include <time.h>
+#include <ctype.h>
+#include <typeinfo>
+#include <errno.h>
+#include <math.h>
+
+#include <array>
+#include <algorithm>
+
+#include "../sys/sys_public.h"
 
 /*
 ===============================================================================
@@ -215,6 +230,7 @@ template<class T> ID_INLINE T	Min( T x, T y ) { return ( x < y ) ? x : y; }
 #include "CmdArgs.h"
 
 // containers
+#include "containers/Array.h"
 #include "containers/BTree.h"
 #include "containers/BinSearch.h"
 #include "containers/HashIndex.h"

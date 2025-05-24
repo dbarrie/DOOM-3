@@ -1861,7 +1861,7 @@ Turns a bad file name into a good one or your money back
 ===============
 */
 void idSessionLocal::ScrubSaveGameFileName( idStr &saveFileName ) const {
-	int i;
+	size_t i;
 	idStr inFileName;
 
 	inFileName = saveFileName;
@@ -1870,7 +1870,7 @@ void idSessionLocal::ScrubSaveGameFileName( idStr &saveFileName ) const {
 
 	saveFileName.Clear();
 
-	int len = inFileName.Length();
+	size_t len = inFileName.Length();
 	for ( i = 0; i < len; i++ ) {
 		if ( strchr( "',.~!@#$%^&*()[]{}<>\\|/=?+;:-\'\"", inFileName[i] ) ) {
 			// random junk
@@ -3205,6 +3205,9 @@ emit an auth packet to the master if possible and needed
 bool idSessionLocal::CDKeysAreValid( bool strict ) {
 	int i;
 	bool emitAuth = false;
+
+	cdkey_state = CDKEY_OK;
+	xpkey_state = CDKEY_OK;
 
 	if ( cdkey_state == CDKEY_UNKNOWN ) {
 		if ( strlen( cdkey ) != CDKEY_BUF_LEN - 1 ) {
