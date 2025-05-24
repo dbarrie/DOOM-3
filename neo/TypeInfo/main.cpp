@@ -226,9 +226,9 @@ const char *	idSysLocal::GetCallStackStr( const address_t *callStack, const int 
 const char *	idSysLocal::GetCallStackCurStr( int depth ) { return ""; }
 void			idSysLocal::ShutdownSymbols( void ) {}
 
-int				idSysLocal::DLL_Load( const char *dllName ) { return 0; }
-void *			idSysLocal::DLL_GetProcAddress( int dllHandle, const char *procName ) { return NULL; }
-void			idSysLocal::DLL_Unload( int dllHandle ) { }
+intptr_t		idSysLocal::DLL_Load( const char *dllName ) { return 0; }
+void *			idSysLocal::DLL_GetProcAddress( intptr_t dllHandle, const char *procName ) { return NULL; }
+void			idSysLocal::DLL_Unload( intptr_t dllHandle ) { }
 void			idSysLocal::DLL_GetFileName( const char *baseName, char *dllName, int maxLength ) { }
 
 sysEvent_t		idSysLocal::GenerateMouseButtonEvent( int button, bool down ) { sysEvent_t ev; memset( &ev, 0, sizeof( ev ) ); return ev; }
@@ -269,15 +269,15 @@ int main( int argc, char** argv ) {
 	generator = new idTypeInfoGen;
 
 	if ( argc > 1 ) {
-		sourcePath = idStr( "../"SOURCE_CODE_BASE_FOLDER"/" ) + argv[1];
+		sourcePath = idStr( "../" SOURCE_CODE_BASE_FOLDER "/" ) + argv[1];
 	} else {
-		sourcePath = "../"SOURCE_CODE_BASE_FOLDER"/game";
+		sourcePath = "../" SOURCE_CODE_BASE_FOLDER "/game";
 	}
 
 	if ( argc > 2 ) {
-		fileName = idStr( "../"SOURCE_CODE_BASE_FOLDER"/" ) + argv[2];
+		fileName = idStr( "../" SOURCE_CODE_BASE_FOLDER "/" ) + argv[2];
 	} else {
-		fileName = "../"SOURCE_CODE_BASE_FOLDER"/game/gamesys/GameTypeInfo.h";
+		fileName = "../" SOURCE_CODE_BASE_FOLDER "/game/gamesys/GameTypeInfo.h";
 	}
 
 	if ( argc > 3 ) {

@@ -297,7 +297,7 @@ int idWaveFile::Read( byte* pBuffer, int dwSizeToRead, int *pdwSizeRead ) {
 			return -1;
 		}
 		
-		dwSizeToRead = mhmmio->Read( pBuffer, dwSizeToRead );
+		dwSizeToRead = (int)mhmmio->Read( pBuffer, dwSizeToRead );
 		// this is hit by ogg code, which does it's own byte swapping internally
 		if ( !isOgg ) {
 			LittleRevBytes( pBuffer, 2, dwSizeToRead / 2 );

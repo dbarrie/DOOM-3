@@ -286,27 +286,27 @@ public:
 	const char *				GetName( void ) const { return name.c_str(); }
 	unsigned int				GetCRC( void ) const { return crc; }
 
-	int							GetNumPlanes( void ) const { return planeList.Num(); }
+	size_t						GetNumPlanes( void ) const { return planeList.Num(); }
 	const idPlane &				GetPlane( int index ) const { return planeList[index]; }
-	int							GetNumVertices( void ) const { return vertices.Num(); }
+	size_t						GetNumVertices( void ) const { return vertices.Num(); }
 	const aasVertex_t &			GetVertex( int index ) const { return vertices[index]; }
-	int							GetNumEdges( void ) const { return edges.Num(); }
+	size_t						GetNumEdges( void ) const { return edges.Num(); }
 	const aasEdge_t &			GetEdge( int index ) const { return edges[index]; }
-	int							GetNumEdgeIndexes( void ) const { return edgeIndex.Num(); }
+	size_t						GetNumEdgeIndexes( void ) const { return edgeIndex.Num(); }
 	const aasIndex_t &			GetEdgeIndex( int index ) const { return edgeIndex[index]; }
-	int							GetNumFaces( void ) const { return faces.Num(); }
+	size_t						GetNumFaces( void ) const { return faces.Num(); }
 	const aasFace_t &			GetFace( int index ) const { return faces[index]; }
-	int							GetNumFaceIndexes( void ) const { return faceIndex.Num(); }
+	size_t						GetNumFaceIndexes( void ) const { return faceIndex.Num(); }
 	const aasIndex_t &			GetFaceIndex( int index ) const { return faceIndex[index]; }
-	int							GetNumAreas( void ) const { return areas.Num(); }
+	size_t						GetNumAreas( void ) const { return areas.Num(); }
 	const aasArea_t &			GetArea( int index ) { return areas[index]; }
-	int							GetNumNodes( void ) const { return nodes.Num(); }
+	size_t						GetNumNodes( void ) const { return nodes.Num(); }
 	const aasNode_t &			GetNode( int index ) const { return nodes[index]; }
-	int							GetNumPortals( void ) const { return portals.Num(); }
+	size_t						GetNumPortals( void ) const { return portals.Num(); }
 	const aasPortal_t &			GetPortal( int index ) { return portals[index]; }
-	int							GetNumPortalIndexes( void ) const { return portalIndex.Num(); }
+	size_t						GetNumPortalIndexes( void ) const { return portalIndex.Num(); }
 	const aasIndex_t &			GetPortalIndex( int index ) const { return portalIndex[index]; }
-	int							GetNumClusters( void ) const { return clusters.Num(); }
+	size_t						GetNumClusters( void ) const { return clusters.Num(); }
 	const aasCluster_t &		GetCluster( int index ) const { return clusters[index]; }
 
 	const idAASSettings &		GetSettings( void ) const { return settings; }

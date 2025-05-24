@@ -276,13 +276,13 @@ const int UNDECORATE_FLAGS =	UNDNAME_NO_MS_KEYWORDS |
 #if defined(_DEBUG) && 1
 
 typedef struct symbol_s {
-	int					address;
+	intptr_t			address;
 	char *				name;
 	struct symbol_s *	next;
 } symbol_t;
 
 typedef struct module_s {
-	int					address;
+	intptr_t			address;
 	char *				name;
 	symbol_t *			symbols;
 	struct module_s *	next;
@@ -320,8 +320,8 @@ void SkipWhiteSpace( const char **ptr ) {
 ParseHexNumber
 ==================
 */
-int ParseHexNumber( const char **ptr ) {
-	int n = 0;
+intptr_t ParseHexNumber( const char **ptr ) {
+	intptr_t n = 0;
 	while( (**ptr) >= '0' && (**ptr) <= '9' || (**ptr) >= 'a' && (**ptr) <= 'f' ) {
 		n <<= 4;
 		if ( **ptr >= '0' && **ptr <= '9' ) {
@@ -339,7 +339,7 @@ int ParseHexNumber( const char **ptr ) {
 Sym_Init
 ==================
 */
-void Sym_Init( long addr ) {
+void Sym_Init( uintptr_t addr ) {
 	TCHAR moduleName[MAX_STRING_CHARS];
 	MEMORY_BASIC_INFORMATION mbi;
 
@@ -360,7 +360,7 @@ void Sym_Init( long addr ) {
 	module_t *module = (module_t *) malloc( sizeof( module_t ) );
 	module->name = (char *) malloc( strlen( moduleName ) + 1 );
 	strcpy( module->name, moduleName );
-	module->address = (int)mbi.AllocationBase;
+	module->address = (intptr_t)mbi.AllocationBase;
 	module->symbols = NULL;
 	module->next = modules;
 	modules = module;
@@ -392,7 +392,7 @@ void Sym_Init( long addr ) {
 		SkipRestOfLine( &ptr );
 	}
 
-	int symbolAddress;
+	intptr_t symbolAddress;
 	int symbolLength;
 	char symbolName[MAX_STRING_CHARS];
 	symbol_t *symbol;
@@ -467,7 +467,7 @@ void Sym_Shutdown( void ) {
 Sym_GetFuncInfo
 ==================
 */
-void Sym_GetFuncInfo( long addr, idStr &module, idStr &funcName ) {
+void Sym_GetFuncInfo(uintptr_t addr, idStr &module, idStr &funcName ) {
 	MEMORY_BASIC_INFORMATION mbi;
 	module_t *m;
 	symbol_t *s;
@@ -475,7 +475,7 @@ void Sym_GetFuncInfo( long addr, idStr &module, idStr &funcName ) {
 	VirtualQuery( (void*)addr, &mbi, sizeof(mbi) );
 
 	for ( m = modules; m != NULL; m = m->next ) {
-		if ( m->address == (int) mbi.AllocationBase ) {
+		if ( m->address == (intptr_t) mbi.AllocationBase ) {
 			break;
 		}
 	}
@@ -504,7 +504,7 @@ void Sym_GetFuncInfo( long addr, idStr &module, idStr &funcName ) {
 		}
 	}
 
-	sprintf( funcName, "0x%08x", addr );
+	sprintf( funcName, "0x%016llx", addr );
 	module = "";
 }
 
@@ -519,7 +519,7 @@ idStr lastModule;
 Sym_Init
 ==================
 */
-void Sym_Init( long addr ) {
+void Sym_Init(uintptr_t addr ) {
 	TCHAR moduleName[MAX_STRING_CHARS];
 	TCHAR modShortNameBuf[MAX_STRING_CHARS];
 	MEMORY_BASIC_INFORMATION mbi;
@@ -564,7 +564,7 @@ void Sym_Shutdown( void ) {
 Sym_GetFuncInfo
 ==================
 */
-void Sym_GetFuncInfo( long addr, idStr &module, idStr &funcName ) {
+void Sym_GetFuncInfo(uintptr_t addr, idStr &module, idStr &funcName ) {
 	MEMORY_BASIC_INFORMATION mbi;
 
 	VirtualQuery( (void*)addr, &mbi, sizeof(mbi) );
@@ -617,7 +617,7 @@ void Sym_GetFuncInfo( long addr, idStr &module, idStr &funcName ) {
 Sym_Init
 ==================
 */
-void Sym_Init( long addr ) {
+void Sym_Init(uintptr_t addr ) {
 }
 
 /*
@@ -633,7 +633,7 @@ void Sym_Shutdown( void ) {
 Sym_GetFuncInfo
 ==================
 */
-void Sym_GetFuncInfo( long addr, idStr &module, idStr &funcName ) {
+void Sym_GetFuncInfo(uintptr_t addr, idStr &module, idStr &funcName ) {
 	module = "";
 	sprintf( funcName, "0x%08x", addr );
 }
@@ -648,7 +648,7 @@ GetFuncAddr
 address_t GetFuncAddr( address_t midPtPtr ) {
 	long temp;
 	do {
-		temp = (long)(*(long*)midPtPtr);
+		temp = (long)(*(uintptr_t*)midPtPtr);
 		if ( (temp&0x00FFFFFF) == PROLOGUE_SIGNATURE ) {
 			break;
 		}
@@ -663,6 +663,7 @@ address_t GetFuncAddr( address_t midPtPtr ) {
 GetCallerAddr
 ==================
 */
+#if 0
 address_t GetCallerAddr( long _ebp ) {
 	long midPtPtr;
 	long res = 0;
@@ -681,6 +682,7 @@ address_t GetCallerAddr( long _ebp ) {
 label:
 	return res;
 }
+#endif
 
 /*
 ==================
@@ -690,7 +692,7 @@ Sys_GetCallStack
 ==================
 */
 void Sys_GetCallStack( address_t *callStack, const int callStackSize ) {
-#if 1 //def _DEBUG
+#if 0 //def _DEBUG
 	int i;
 	long m_ebp;
 
@@ -763,7 +765,7 @@ const char *Sys_GetCallStackCurAddressStr( int depth ) {
 
 	index = 0;
 	for ( i = depth-1; i >= 0; i-- ) {
-		index += sprintf( string+index, " -> 0x%08x", callStack[i] );
+		index += sprintf( string+index, " -> 0x%016llx", callStack[i] );
 	}
 	return string;
 }
