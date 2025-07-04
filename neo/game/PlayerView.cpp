@@ -565,10 +565,17 @@ void idPlayerView::DoubleVision( idUserInterface *hud, const renderView_t *view,
 		color.z = 0;
 	}
 
+	auto nextPot = [](int size) { int pot = 1; while (pot < size) pot <<= 1; return (float)pot; };
+	int vidWidth, vidHeight;
+	renderSystem->GetGLSettings(vidWidth, vidHeight);
+
+	const float xScale = vidWidth / nextPot(vidWidth);
+	const float yScale = vidHeight / nextPot(vidHeight);
+
 	renderSystem->SetColor4( color.x, color.y, color.z, 1.0f );
-	renderSystem->DrawStretchPic( 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, shift, 1, 1, 0, dvMaterial );
+	renderSystem->DrawStretchPic( 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, shift, 0, xScale, yScale, dvMaterial );
 	renderSystem->SetColor4( color.x, color.y, color.z, 0.5f );
-	renderSystem->DrawStretchPic( 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, 0, 1, 1-shift, 0, dvMaterial );
+	renderSystem->DrawStretchPic( 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, 0, 0, (1-shift)*xScale, yScale, dvMaterial );
 }
 
 /*
@@ -582,7 +589,14 @@ void idPlayerView::BerserkVision( idUserInterface *hud, const renderView_t *view
 	renderSystem->CaptureRenderToImage( "_scratch" );
 	renderSystem->UnCrop();
 	renderSystem->SetColor4( 1.0f, 1.0f, 1.0f, 1.0f );
-	renderSystem->DrawStretchPic( 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, 0, 1, 1, 0, dvMaterial );
+
+	auto nextPot = [](int size) { int pot = 1; while (pot < size) pot <<= 1; return (float)pot; };
+	int vidWidth, vidHeight;
+	renderSystem->GetGLSettings(vidWidth, vidHeight);
+
+	const float xScale = vidWidth / nextPot(vidWidth);
+	const float yScale = vidHeight / nextPot(vidHeight);
+	renderSystem->DrawStretchPic( 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, 0, 0, xScale, yScale, dvMaterial );
 }
 
 

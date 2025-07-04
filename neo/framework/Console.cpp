@@ -1168,8 +1168,12 @@ void	idConsoleLocal::Draw( bool forceFullScreen ) {
 		}
 	}
 
+	if (com_showFuryStats.GetBool()) {
+		//y = SCR_DrawFuryStats(y);
+	}
+
 	if ( com_showFPS.GetBool() ) {
-		y = SCR_DrawFPS( 0 );
+		y = SCR_DrawFPS( y );
 	}
 
 	if ( com_showMemoryUsage.GetBool() ) {

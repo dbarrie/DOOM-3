@@ -1610,7 +1610,23 @@ idImage* idImageManager::ScratchImage(const char* name, int width, int height, F
 	else
 		image->PurgeImage();
 
-	image->AllocImage(width, height, 1, 1, format, FGL_IMAGE_VIEW_TYPE_2D);
+	auto isPowerOfTwo = [](int size)
+	{
+		int pot = 1;
+		while (pot < size)
+		{
+			pot = pot << 1;
+		}
+		return pot == size;
+	};
+
+	FglImageTiling tiling = FGL_IMAGE_TILING_LINEAR;
+	if (!isPowerOfTwo(width) || !isPowerOfTwo(height))
+	{
+		tiling = FGL_IMAGE_TILING_FRAMEBUFFER;
+	}
+
+	image->AllocImage(width, height, 1, 1, format, FGL_IMAGE_VIEW_TYPE_2D, tiling);
 	image->scratchImage = true;
 	image->referencedOutsideLevelLoad = true;
 

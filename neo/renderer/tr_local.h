@@ -597,6 +597,20 @@ typedef struct {
 	int		msec;			// total msec for backend run
 } backEndCounters_t;
 
+typedef struct {
+	int		gpuCycles;
+	int		iaNumIndices;
+	int		iaNumCycles;
+	int		vsNumVertices;
+	int		vsNumCycles;
+	int		paNumPrimitives;
+	int		paNumCycles;
+	int		tbNumPrimitives;
+	int		tbNumCycles;
+	int		trNumPixels;
+	int		trNumCycles;
+} furyStats_t;
+
 // all state modified by the back end is separated
 // from the front end state
 typedef struct {

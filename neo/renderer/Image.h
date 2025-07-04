@@ -155,7 +155,7 @@ public:
 	// May start a background image read.
 	void		Bind(int slot);
 
-	void		AllocImage(int width, int height, int numMips, int numLayers, FglFormat format, FglImageViewType viewType);
+	void		AllocImage(int width, int height, int numMips, int numLayers, FglFormat format, FglImageViewType viewType, FglImageTiling tiling);
 
 	// deletes the texture object, but leaves the structure so it can be reloaded
 	void		PurgeImage();
@@ -174,7 +174,7 @@ public:
 						textureFilter_t filter, bool allowDownSize, 
 						textureDepth_t depth );
 
-	void		CopyFramebuffer( int x, int y, int width, int height, bool useOversizedBuffer );
+	void		CopyFramebuffer(FglImage src, int imageWidth, int imageHeight);
 
 	void		CopyDepthbuffer( int x, int y, int width, int height );
 
@@ -216,6 +216,8 @@ public:
 	FglDeviceMemory		m_imageMemory;
 
 	FglSampler			m_sampler;
+
+	FglExtent3D			m_extent;
 
 	textureType_t		type;
 	int					frameUsed;				// for texture usage in frame statistics

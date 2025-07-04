@@ -69,6 +69,7 @@ extern idCVar		com_showFPS;
 extern idCVar		com_showMemoryUsage;
 extern idCVar		com_showAsyncStats;
 extern idCVar		com_showSoundDecoders;
+extern idCVar		com_showFuryStats;
 extern idCVar		com_makingBuild;
 extern idCVar		com_updateLoadSize;
 extern idCVar		com_videoRam;

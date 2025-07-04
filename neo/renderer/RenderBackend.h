@@ -70,12 +70,14 @@ private:
 
     void DrawView(const void* data);
     void SwapBuffers(const void* data);
+    void CopyRender(const void* data);
+
+    void CopyFramebuffer(idImage* image, int x, int y, int width, int height);
 
     void DebugMarker(const char* fmt, ...);
 
     void DrawView();
     void BeginDrawingView();
-    void FinishDrawingView();
 
     void SetScissor();
 
@@ -137,6 +139,7 @@ private:
     idArray<FglFramebuffer, NUM_FRAME_DATA> m_framebuffers;
 
     FglRenderPass m_renderPass;
+    FglRenderPass m_renderPassResume;
 
     idImage* m_pDepthImage;
 

@@ -314,6 +314,10 @@ void idRenderBackend::CreateRenderPass()
     ID_FGL_CHECK(fglCreateRenderPass(m_device, &rpInfo, nullptr, &m_renderPass));
 
     fglcontext.renderPass = m_renderPass;
+
+    attachments[0].loadOp = FGL_ATTACHMENT_LOAD_OP_LOAD;
+
+    ID_FGL_CHECK(fglCreateRenderPass(m_device, &rpInfo, nullptr, &m_renderPassResume));
 }
 
 void idRenderBackend::CreateFramebuffers()
@@ -582,7 +586,7 @@ void idRenderBackend::ExecuteBackEndCommands(const emptyCommand_t* cmds)
             c_swapBuffers++;
             break;
         case RC_COPY_RENDER:
-            //RB_CopyRender(cmds);
+            CopyRender(cmds);
             c_copyRenders++;
             break;
         default:
@@ -645,8 +649,7 @@ void idRenderBackend::EndFrame()
 {
     FglCommandBuffer cmdbuf = m_commandBuffers[m_currentFrameData];
 
-    FinishDrawingView();
-    //fglCmdEndRenderPass(cmdbuf);
+    fglCmdEndRenderPass(cmdbuf);
 
     fglEndCommandBuffer(cmdbuf);
 
@@ -698,7 +701,7 @@ void idRenderBackend::EndFrame()
             pDepthData = (uint32_t*)Mem_Alloc(memSize);
         }
 
-        FglDeviceCopyImageInfo copy[2];
+        FglDeviceCopyImageToHostInfo copy[2];
         uint32_t copyIdx = 0;
 
         if (captureColor)
@@ -726,6 +729,42 @@ void idRenderBackend::EndFrame()
     }
 
     m_currentFrameData = ++m_frameCounter % NUM_FRAME_DATA;
+}
+
+void idRenderBackend::CopyRender(const void* data)
+{
+    const copyRenderCommand_t* cmd;
+
+    cmd = (const copyRenderCommand_t*)data;
+    if (r_skipCopyTexture.GetBool()) {
+        return;
+    }
+
+    RB_LogComment("***************** RB_CopyRender *****************\n");
+
+    if (cmd->image) {
+        CopyFramebuffer(cmd->image,
+            backEnd.viewDef->viewport.x1, backEnd.viewDef->viewport.y1,
+            backEnd.viewDef->viewport.x2 - backEnd.viewDef->viewport.x1 + 1,
+            backEnd.viewDef->viewport.y2 - backEnd.viewDef->viewport.y1 + 1);
+    }
+}
+
+void idRenderBackend::CopyFramebuffer(idImage* image, int x, int y, int width, int height)
+{
+    // End current render pass, which will flush the GPU to finish rendering
+    fglCmdEndRenderPass(fglcontext.cmdbuf);
+
+    // Copy the framebuffer data to a texture that can be used for post processing
+    image->CopyFramebuffer(m_swapchainImages[m_currentFrameData], m_swapchainExtent.width, m_swapchainExtent.height);
+
+    // Kick off a new render pass, rendering to the same framebuffer we just copied from
+    FglRenderPassBeginInfo rpInfo{};
+    rpInfo.framebuffer = m_framebuffers[m_currentFrameData];
+    rpInfo.renderArea.offset = FglOffset2D{ 0, 0 };
+    rpInfo.renderArea.extent = m_swapchainExtent;
+    rpInfo.renderPass = m_renderPassResume;
+    fglCmdBeginRenderPass(fglcontext.cmdbuf, &rpInfo);
 }
 
 void idRenderBackend::DebugMarker(const char* fmt, ...)
@@ -801,13 +840,6 @@ void idRenderBackend::BeginDrawingView()
     GL_State(GLS_CULL_FRONTSIDED);
 }
 
-void idRenderBackend::FinishDrawingView()
-{
-    FglCommandBuffer cmdbuf = m_commandBuffers[m_currentFrameData];
-
-    fglCmdEndRenderPass(cmdbuf);
-}
-
 void idRenderBackend::DrawView()
 {
     drawSurf_t** drawSurfs;
@@ -849,7 +881,7 @@ void idRenderBackend::DrawView()
 
     // now draw any post-processing effects using _currentRender
     if (processed < numDrawSurfs) {
-        //RB_STD_DrawShaderPasses(drawSurfs + processed, numDrawSurfs - processed);
+        SurfacesDrawShaderPasses(drawSurfs + processed, numDrawSurfs - processed);
     }
 
     //RB_RenderDebugTools(drawSurfs, numDrawSurfs);
@@ -1169,14 +1201,22 @@ void idRenderBackend::SetProgramEnvironment()
     float	parm[4];
     int		pot;
 
+    auto smallestPowerOfTwo = [](int size)
+    {
+        int pot = 1;
+        while (pot < size)
+            pot <<= 1;
+        return pot;
+    };
+
     // screen power of two correction factor, assuming the copy to _currentRender
     // also copied an extra row and column for the bilerp
     int	 w = backEnd.viewDef->viewport.x2 - backEnd.viewDef->viewport.x1 + 1;
-    pot = 128;// globalImages->currentRenderImage->uploadWidth;
+    pot = smallestPowerOfTwo((int)globalImages->currentRenderImage->m_extent.width);
     parm[0] = (float)w / pot;
 
     int	 h = backEnd.viewDef->viewport.y2 - backEnd.viewDef->viewport.y1 + 1;
-    pot = 128;// globalImages->currentRenderImage->uploadHeight;
+    pot = smallestPowerOfTwo((int)globalImages->currentRenderImage->m_extent.height);
     parm[1] = (float)h / pot;
 
     parm[2] = 0;
@@ -1606,16 +1646,14 @@ int idRenderBackend::SurfacesDrawShaderPasses(drawSurf_t** drawSurfs, int numDra
     // if we are about to draw the first surface that needs
     // the rendering in a texture, copy it over
     if (drawSurfs[0]->material->GetSort() >= SS_POST_PROCESS) {
-        //if (r_skipPostProcess.GetBool()) {
+        if (r_skipPostProcess.GetBool()) {
             return 0;
-        //}
-
-        // only dump if in a 3d view
-        if (backEnd.viewDef->viewEntitys) {
-            globalImages->currentRenderImage->CopyFramebuffer(backEnd.viewDef->viewport.x1,
-                backEnd.viewDef->viewport.y1, backEnd.viewDef->viewport.x2 - backEnd.viewDef->viewport.x1 + 1,
-                backEnd.viewDef->viewport.y2 - backEnd.viewDef->viewport.y1 + 1, true);
         }
+
+        CopyFramebuffer(globalImages->currentRenderImage,
+            backEnd.viewDef->viewport.x1, backEnd.viewDef->viewport.y1,
+            backEnd.viewDef->viewport.x2 - backEnd.viewDef->viewport.x1 + 1,
+            backEnd.viewDef->viewport.y2 - backEnd.viewDef->viewport.y1 + 1);
         backEnd.currentRenderCopied = true;
     }
 
@@ -1898,8 +1936,8 @@ void idRenderBackend::DrawLightScale()
         renderProgManager.SetRenderParms(RENDERPARM_PROJMATRIX_X, ortho, 4);
     }
 
-    GL_State(GLS_SRCBLEND_DST_COLOR | GLS_DSTBLEND_SRC_COLOR);
-    GL_State(GLS_CULL_TWOSIDED);	// so mirror views also get it
+    GL_State(GLS_SRCBLEND_DST_COLOR | GLS_DSTBLEND_SRC_COLOR | GLS_CULL_TWOSIDED);
+    //GL_State(GLS_CULL_TWOSIDED);	// so mirror views also get it
     //globalImages->BindNull();
     //qglDisable(GL_DEPTH_TEST);
     //qglDisable(GL_STENCIL_TEST);

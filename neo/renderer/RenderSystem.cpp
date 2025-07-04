@@ -641,6 +641,39 @@ void idRenderSystemLocal::EndFrame( int *frontEndMsec, int *backEndMsec ) {
 		return;
 	}
 
+	{
+		FglStatistics stats;
+		fglDeviceGetStatistics(fglcontext.device, &stats);
+
+		uint32_t ia_avg = stats.input_assembly_indices ? stats.input_assembly_cycles / stats.input_assembly_indices : 0;
+		uint32_t vs_avg = stats.vertex_shading_vertices ? stats.vertex_shading_cycles / stats.vertex_shading_vertices : 0;
+		uint32_t pa_avg = stats.primitive_assembly_primitives ? stats.primitive_assembly_cycles / stats.primitive_assembly_primitives : 0;
+		uint32_t tb_avg = stats.binning_primitives ? stats.binning_cycles / stats.binning_primitives : 0;
+		uint32_t tr_avg = stats.rasterizer_pixels ? stats.rasterizer_cycles / stats.rasterizer_pixels : 0;
+
+		const idMaterial* mat = declManager->FindMaterial("textures/bigchars");
+
+		float y = 0;
+		auto drawFmtStr = [&](const char* pFmt, ...)
+		{
+			char string[MAX_STRING_CHARS];
+			va_list argptr;
+			va_start(argptr, pFmt);
+			int i = idStr::vsnPrintf(string, sizeof(string), pFmt, argptr);
+			va_end(argptr);
+			renderSystem->DrawSmallStringExt(635 - i * SMALLCHAR_WIDTH, y + 2, string, colorWhite, true, mat);
+			y += SMALLCHAR_HEIGHT + 4;
+		};
+
+		drawFmtStr("IA  % 10d / % 8d = % 6d", stats.input_assembly_cycles, stats.input_assembly_indices, ia_avg);
+		drawFmtStr("VS  % 10d / % 8d = % 6d", stats.vertex_shading_cycles, stats.vertex_shading_vertices, vs_avg);
+		drawFmtStr("PA  % 10d / % 8d = % 6d", stats.primitive_assembly_cycles, stats.primitive_assembly_primitives, pa_avg);
+		drawFmtStr("TB  % 10d / % 8d = % 6d", stats.binning_cycles, stats.binning_primitives, tb_avg);
+		drawFmtStr("TR  % 10d / % 8d = % 6d", stats.rasterizer_cycles, stats.rasterizer_pixels, tr_avg);
+
+		fglDeviceResetStatistics(fglcontext.device);
+	}
+
 	// close any gui drawing
 	guiModel->EmitFullScreen();
 
@@ -720,7 +753,7 @@ Converts from SCREEN_WIDTH / SCREEN_HEIGHT coordinates to current cropped pixel 
 =====================
 */
 void idRenderSystemLocal::RenderViewToViewport( const renderView_t *renderView, idScreenRect *viewport ) {
-	renderCrop_t	*rc = &renderCrops[currentRenderCrop];
+	renderCrop_t	*rc = &renderCrops[0/*currentRenderCrop*/];
 
 	float wRatio = (float)rc->width / SCREEN_WIDTH;
 	float hRatio = (float)rc->height / SCREEN_HEIGHT;
@@ -846,7 +879,7 @@ void idRenderSystemLocal::UnCrop() {
 	// close any gui drawing
 	guiModel->EmitFullScreen();
 	guiModel->Clear();
-
+	
 	currentRenderCrop--;
 
 	if ( session->writeDemo ) {

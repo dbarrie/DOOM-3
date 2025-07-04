@@ -586,7 +586,7 @@ const void	RB_CopyRender( const void *data ) {
 	const copyRenderCommand_t	*cmd;
 
 	cmd = (const copyRenderCommand_t *)data;
-
+#if 0
 	if ( r_skipCopyTexture.GetBool() ) {
 		return;
 	}
@@ -596,6 +596,7 @@ const void	RB_CopyRender( const void *data ) {
 	if (cmd->image) {
 		cmd->image->CopyFramebuffer( cmd->x, cmd->y, cmd->imageWidth, cmd->imageHeight, false );
 	}
+#endif
 }
 
 /*

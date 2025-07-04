@@ -340,7 +340,7 @@ void idImage::GenerateImage( const byte *pic, int width, int height,
 		return mips;
 	};
 
-	AllocImage(scaled_width, scaled_height, numMipLevels(scaled_width, scaled_height), 1, FGL_FORMAT_R8G8B8A8_UNORM, FGL_IMAGE_VIEW_TYPE_2D);
+	AllocImage(scaled_width, scaled_height, numMipLevels(scaled_width, scaled_height), 1, FGL_FORMAT_R8G8B8A8_UNORM, FGL_IMAGE_VIEW_TYPE_2D, FGL_IMAGE_TILING_LINEAR);
 
 	FglConvertImageInfo convertInfo{ FGL_FORMAT_R8G8B8A8_UNORM, 0, 0, 1, (void**)&scaledBuffer };
 	ID_FGL_CHECK(fglConvertImageData(fglcontext.device, m_image, &convertInfo, nullptr));
@@ -406,7 +406,7 @@ void idImage::GenerateCubeImage( const byte *pic[6], int size,
 		return mips;
 	};
 
-	AllocImage(uploadWidth, uploadHeight, numMipLevels(uploadWidth, uploadHeight), 6, FGL_FORMAT_R8G8B8A8_UNORM, FGL_IMAGE_VIEW_TYPE_CUBEMAP);
+	AllocImage(uploadWidth, uploadHeight, numMipLevels(uploadWidth, uploadHeight), 6, FGL_FORMAT_R8G8B8A8_UNORM, FGL_IMAGE_VIEW_TYPE_CUBEMAP, FGL_IMAGE_TILING_LINEAR);
 
 	FglConvertImageInfo convertInfo{ FGL_FORMAT_R8G8B8A8_UNORM, 0, 0, 1, (void**)pic };
 	ID_FGL_CHECK(fglConvertImageData(fglcontext.device, m_image, &convertInfo, nullptr));
@@ -1310,25 +1310,9 @@ void idImage::PurgeImage() {
 	}
 }
 
-void idImage::AllocImage(int width, int height, int numMips, int numLayers, FglFormat format, FglImageViewType viewType)
+void idImage::AllocImage(int width, int height, int numMips, int numLayers, FglFormat format, FglImageViewType viewType, FglImageTiling tiling)
 {
-	auto isPowerOfTwo = [](int size)
-	{
-		int pot = 1;
-		while (pot < size)
-		{
-			pot = pot << 1;
-		}
-		return pot == size;
-	};
-
 	FglExtent3D extent{ (uint32_t)width, (uint32_t)height, 1 };
-
-	FglImageTiling tiling = FGL_IMAGE_TILING_LINEAR;
-	if (!isPowerOfTwo(width) || !isPowerOfTwo(height))
-	{
-		tiling = FGL_IMAGE_TILING_FRAMEBUFFER;
-	}
 
 	FglImageCreateInfo createInfo{ FGL_IMAGE_TYPE_2D, format, tiling, extent, (uint32_t)numMips, (uint32_t)numLayers };
 	ID_FGL_CHECK(fglCreateImage(fglcontext.device, &createInfo, nullptr, &m_image));
@@ -1342,6 +1326,8 @@ void idImage::AllocImage(int width, int height, int numMips, int numLayers, FglF
 
 	FglImageViewCreateInfo viewInfo{ m_image, viewType, format };
 	ID_FGL_CHECK(fglCreateImageView(fglcontext.device, &viewInfo, nullptr, &m_imageView));
+
+	m_extent = extent;
 }
 
 /*
@@ -1401,73 +1387,34 @@ void idImage::Bind(int slot) {
 CopyFramebuffer
 ====================
 */
-void idImage::CopyFramebuffer( int x, int y, int imageWidth, int imageHeight, bool useOversizedBuffer ) {
+void idImage::CopyFramebuffer(FglImage src, int imageWidth, int imageHeight)
+{
+	// Need the copy to be a power of two for sampling
+	auto nextPot = [](int size)
+	{
+		int pot = 1;
+		while (pot < size)
+			pot <<= 1;
+		return pot;
+	};
 
-	common->Warning("TODO: CopyFramebuffer");
-	return;
+	int potWidth = nextPot(imageWidth);
+	int potHeight = nextPot(imageHeight);
 
-	//Bind();
-
-	if ( cvarSystem->GetCVarBool( "g_lowresFullscreenFX" ) ) {
-		imageWidth = 512;
-		imageHeight = 512;
+	if (m_extent.width != potWidth || m_extent.height != potHeight)
+	{
+		PurgeImage();
+		AllocImage(potWidth, potHeight, 1, 1, FGL_FORMAT_R8G8B8A8_UNORM, FGL_IMAGE_VIEW_TYPE_2D, FGL_IMAGE_TILING_FRAMEBUFFER);
+		CreateSampler();
 	}
 
-	// if the size isn't a power of 2, the image must be increased in size
-	int	potWidth, potHeight;
-
-	potWidth = MakePowerOfTwo( imageWidth );
-	potHeight = MakePowerOfTwo( imageHeight );
-
-	GetDownsize( imageWidth, imageHeight );
-	GetDownsize( potWidth, potHeight );
-
-	qglReadBuffer( GL_BACK );
-
-	// only resize if the current dimensions can't hold it at all,
-	// otherwise subview renderings could thrash this
-	if ( ( useOversizedBuffer && ( uploadWidth < potWidth || uploadHeight < potHeight ) )
-		|| ( !useOversizedBuffer && ( uploadWidth != potWidth || uploadHeight != potHeight ) ) ) {
-		uploadWidth = potWidth;
-		uploadHeight = potHeight;
-		if ( potWidth == imageWidth && potHeight == imageHeight ) {
-			qglCopyTexImage2D( GL_TEXTURE_2D, 0, GL_RGB8, x, y, imageWidth, imageHeight, 0 );
-		} else {
-			byte	*junk;
-			// we need to create a dummy image with power of two dimensions,
-			// then do a qglCopyTexSubImage2D of the data we want
-			// this might be a 16+ meg allocation, which could fail on _alloca
-			junk = (byte *)Mem_Alloc( potWidth * potHeight * 4 );
-			memset( junk, 0, potWidth * potHeight * 4 );		//!@#
-#if 0 // Disabling because it's unnecessary and introduces a green strip on edge of _currentRender
-			for ( int i = 0 ; i < potWidth * potHeight * 4 ; i+=4 ) {
-				junk[i+1] = 255;
-			}
-#endif
-			qglTexImage2D( GL_TEXTURE_2D, 0, GL_RGB, potWidth, potHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, junk );
-			Mem_Free( junk );
-
-			qglCopyTexSubImage2D( GL_TEXTURE_2D, 0, 0, 0, x, y, imageWidth, imageHeight );
-		}
-	} else {
-		// otherwise, just subimage upload it so that drivers can tell we are going to be changing
-		// it and don't try and do a texture compression or some other silliness
-		qglCopyTexSubImage2D( GL_TEXTURE_2D, 0, 0, 0, x, y, imageWidth, imageHeight );
-	}
-
-	// if the image isn't a full power of two, duplicate an extra row and/or column to fix bilerps
-	if ( imageWidth != potWidth ) {
-		qglCopyTexSubImage2D( GL_TEXTURE_2D, 0, imageWidth, 0, x+imageWidth-1, y, 1, imageHeight );
-	}
-	if ( imageHeight != potHeight ) {
-		qglCopyTexSubImage2D( GL_TEXTURE_2D, 0, 0, imageHeight, x, y+imageHeight-1, imageWidth, 1 );
-	}
-
-	qglTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
-	qglTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
-
-	qglTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE );
-	qglTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE );
+	FglImageCopy region{};
+	region.srcSubresource.aspectMask = FGL_IMAGE_ASPECT_COLOR_BIT;
+	region.srcSubresource.layerCount = 1;
+	region.dstSubresource.aspectMask = FGL_IMAGE_ASPECT_COLOR_BIT;
+	region.dstSubresource.layerCount = 1;
+	region.extent = FglExtent3D{ (uint32_t)imageWidth, (uint32_t)imageHeight, 1 };
+	fglCmdCopyImage(fglcontext.cmdbuf, src, m_image, 1, &region);
 
 	backEnd.c_copyFrameBuffer++;
 }
@@ -1553,7 +1500,7 @@ void idImage::UploadScratch( const byte *data, int cols, int rows ) {
 		uploadWidth = cols;
 		uploadHeight = rows;
 
-		AllocImage(uploadWidth, uploadHeight, numMipLevels(uploadWidth, uploadHeight), 6, FGL_FORMAT_R8G8B8A8_UNORM, FGL_IMAGE_VIEW_TYPE_CUBEMAP);
+		AllocImage(uploadWidth, uploadHeight, numMipLevels(uploadWidth, uploadHeight), 6, FGL_FORMAT_R8G8B8A8_UNORM, FGL_IMAGE_VIEW_TYPE_CUBEMAP, FGL_IMAGE_TILING_LINEAR);
 
 		const byte* ppData[6];
 		for (i = 0; i < 6; ++i)
@@ -1572,7 +1519,7 @@ void idImage::UploadScratch( const byte *data, int cols, int rows ) {
 		uploadWidth = cols;
 		uploadHeight = rows;
 
-		AllocImage(uploadWidth, uploadHeight, numMipLevels(uploadWidth, uploadHeight), 1, FGL_FORMAT_R8G8B8A8_UNORM, FGL_IMAGE_VIEW_TYPE_2D);
+		AllocImage(uploadWidth, uploadHeight, numMipLevels(uploadWidth, uploadHeight), 1, FGL_FORMAT_R8G8B8A8_UNORM, FGL_IMAGE_VIEW_TYPE_2D, FGL_IMAGE_TILING_LINEAR);
 
 		FglConvertImageInfo convertInfo{ FGL_FORMAT_R8G8B8A8_UNORM, 0, 0, 1, (void**)&data };
 		ID_FGL_CHECK(fglConvertImageData(fglcontext.device, m_image, &convertInfo, nullptr));
