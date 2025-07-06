@@ -338,6 +338,9 @@ idVertexCache::CacheIsCurrent
 ==============
 */
 bool idVertexCache::CacheIsCurrent(const vertCacheHandle_t handle) {
+	if (!handle)
+		return false;
+
 	const int isStatic = handle & VERTCACHE_STATIC;
 	if (isStatic) {
 		return true;
